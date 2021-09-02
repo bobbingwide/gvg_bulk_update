@@ -10,9 +10,11 @@ class vgc_options_page
 {
 
     private $option_names;
+    private $option_name_IDs;
 
     function __construct() {
         $this->option_names = [];
+        $this->option_name_IDs = [];
     }
 
     function vgc_options_results() {
@@ -55,7 +57,7 @@ class vgc_options_page
     function vgc_display_products( $posts ) {
 
         p( count( $posts) );
-        stag( 'table', "form-table" );
+        stag( 'table', "widefat" );
 
         foreach ( $posts as $post ) {
             if ( 0 === $post->ID ) {
@@ -139,6 +141,7 @@ class vgc_options_page
                 $option_name = get_post_meta( $ID, $meta_key, true);
                 $names[] = $option_name;
                 $this->add_option_name( $option_name );
+                $this->add_option_name_ID( $option_name, $ID );
             }
             $names[] = '<br />';
         }
@@ -154,6 +157,29 @@ class vgc_options_page
         $this->option_names[ $name ] += 1;
         //echo $name . ' ' . count( $this->option_names);
 
+    }
+
+    function add_option_name_ID( $name, $ID ) {
+        if ( !isset( $this->option_name_IDs[ $name ]) ) {
+            $this->option_name_IDs[ $name ] = [];
+        }
+        $this->option_name_IDs[ $name ][] = $ID;
+
+    }
+
+    function vgc_options_display() {
+        p( "Options");
+        p( count( $this->option_names ));
+        stag( 'table', "widefat" );
+        foreach ( $this->option_names as $key => $count ) {
+            bw_tablerow( [$key, $count ]);
+        }
+        etag( 'table');
+        stag( 'table', "widefat" );
+        foreach ( $this->option_name_IDs as $key => $IDs ) {
+            bw_tablerow( [$key, implode( ', ', $IDs ) ]);
+        }
+        etag( 'table');
     }
 
 
