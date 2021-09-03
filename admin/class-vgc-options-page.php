@@ -43,13 +43,15 @@ class vgc_options_page
         $args = array( '#options' => $this->option_name_selection() );
         BW_::bw_select( '_option', 'Options', $this->get_option_value(), $args );
 
-       // bw_tablerow( array( "Options", bw_select( "_batchmove_category_select" ) ) );
-        //bw_textfield( "_batchmove_rows", 15, "Rows per page", null );
-        //oik_batchmove_order_by();
-        //oik_batchmove_order();
+        $args = array( '#options' => $this->option_field_selection() );
+        BW_::bw_select( '_field_name', "Field name", $this->get_field_name(), $args );
+
+
+       BW_::bw_textarea( "_new_field_value", 80, "New field value", $this->get_new_field_value(), 3 );
 
         etag( "table" );
-        p( isubmit( "vgc_filter", "Submit", null, "button-primary" ) );
+        p( isubmit( "vgc_filter", "List", null, "button-primary" ) );
+        p( isubmit( 'vgc_update', 'Update', null, 'button-secondary') );
         etag( "form" );
 
     }
@@ -68,6 +70,46 @@ class vgc_options_page
         return $options;
     }
 
+/*
+ * Supported ? | Field | Notes
+ * -------- | ------- | ----------
+y | description | needs to be a textarea
+y | image | Post ID
+? | name |
+name
+options
+options_0_increase_base_size_by
+options_0_name
+options_0_price
+options_1_increase_base_size_by
+options_1_name
+options_1_price
+options_2_increase_base_size_by
+options_2_name
+options_2_price
+options_3_increase_base_size_by
+options_3_name
+options_3_price
+options_4_increase_base_size_by
+options_4_name
+options_4_price
+options_5_name
+options_5_price
+price_per_sq_m
+pricing_route
+single_choice_or_multi_choice
+single_price
+*/
+
+    function option_field_selection() {
+        $options= [];
+        $options['description'] = 'Description';
+        $options['image'] = 'Image';
+        $options['pricing_route'] = "Pricing route";
+        $options['single_price'] = "Price";
+        return $options;
+    }
+
     function vgc_options_results() {
         p( "Results");
         $option_value =  $this->get_option_value();
@@ -77,7 +119,9 @@ class vgc_options_page
         p( $option_name);
 
         $IDs = $this->get_ids_for_option_name( $option_name );
-        $this->display_option_values( $option_name, $IDs );
+
+        $field_name = $this->get_field_name();
+        $this->display_option_values( $option_name, $field_name, $IDs );
 
     }
 
@@ -91,6 +135,17 @@ class vgc_options_page
         $option_value =  $value = bw_array_get( $_REQUEST, '_option', null );
         return $option_value;
     }
+
+    function get_field_name() {
+        $field_name =  $value = bw_array_get( $_REQUEST, '_field_name', null );
+        return $field_name;
+    }
+
+    function get_new_field_value() {
+        $field_value =  $value = bw_array_get( $_REQUEST, '_new_field_value', null );
+        return $field_value;
+    }
+
 
 
     function vgc_options_select() {
@@ -304,20 +359,21 @@ class vgc_options_page
 
     }
 
-    function display_option_values( $option_name, $IDs ) {
+    function display_option_values( $option_name, $field_name, $IDs ) {
+        $field_title = $this->option_field_selection()[ $field_name ];
         stag( 'table', 'widefat');
-        bw_tablerow( ["ID","Title","x","y","Option name", "Field" ] );
+        bw_tablerow( ["ID","Title","Option name", $field_title ] );
         foreach ( $IDs as $map ) {
             $ID = $map['id'];
             $post = get_post( $ID );
             $row = [];
             $row[] = $this->vgc_edit_link( $ID );
             $row[] = $post->post_title;
-            $row[] = $map['x'];
-            $row[] = $map['y'];
+            //$row[] = $map['x'];
+            //$row[] = $map['y'];
             $row[] = $this->get_post_option_field( $ID, $map['x'], $map['y'], 'name');
-            $row[] = $this->get_post_option_field( $ID, $map['x'], $map['y'], 'single_price');
-            $row[] = $this->get_post_option_field( $ID, $map['x'], $map['y'], 'description')
+            //$row[] = $this->get_post_option_field( $ID, $map['x'], $map['y'], 'single_price');
+            $row[] = $this->get_post_option_field( $ID, $map['x'], $map['y'], $field_name);
 
 
 
