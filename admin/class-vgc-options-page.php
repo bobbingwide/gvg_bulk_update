@@ -113,6 +113,12 @@ y | single_price
         $options['pricing_route'] = "Pricing route";
         $options['price_per_sq_m'] = "Price per square metre";
         $options['single_choice_or_multi_choice'] = "Single choice or multi choice";
+        $options['options'] = "Options";
+        for ( $index= 0; $index <=5; $index++ ) {
+            $options["options_{$index}_increase_base_size_by"] = "Option $index increase base size by";
+            $options["options_{$index}_name"] = "Option $index name";
+            $options["options_{$index}_price"] = "Option $index price";
+        }
         return $options;
     }
 
