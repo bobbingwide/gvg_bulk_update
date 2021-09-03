@@ -107,12 +107,12 @@ y | single_price
 */
     function option_field_selection() {
         $options= [];
+        $options['single_price'] = "Price";
         $options['description'] = 'Description';
         $options['image'] = 'Image';
-        $options['price_per_sq_m'] = "Price per square metre";
         $options['pricing_route'] = "Pricing route";
+        $options['price_per_sq_m'] = "Price per square metre";
         $options['single_choice_or_multi_choice'] = "Single choice or multi choice";
-        $options['single_price'] = "Price";
         return $options;
     }
 
@@ -138,7 +138,7 @@ y | single_price
 
         $is_update = $this->check_for_update();
         if ( $is_update) {
-            $this->apply_updates( $option_name, $field_name, $IDs);
+            $this->maybe_apply_updates( $option_name, $field_name, $IDs);
         }
 
 
@@ -416,13 +416,18 @@ y | single_price
         return $option_field;
     }
 
+    function update_post_option_field( $ID, $x, $y, $name, $new_field_value, $match_value ) {
+        $meta_key = $this->vgc_meta_key( $x, $y, $name );
+        update_post_meta( $ID, $meta_key, $new_field_value, $match_value);
+    }
+
     function check_for_update() {
         $update = bw_array_get( $_REQUEST, "vgc_update", null );
         $is_update = ( null !== $update ) ;
         return $is_update;
     }
 
-    function apply_updates( $option_name, $field_name, $IDs ) {
+    function maybe_apply_updates( $option_name, $field_name, $IDs ) {
 
         if ( $option_name && $field_name ) {
             $new_field_value = $this->get_new_field_value();
@@ -435,25 +440,41 @@ y | single_price
                 p( "Please set a non-blank value for Update");
                 return;
             }
-            p( "Performing update for $option_name, setting field $field_name to $new_field_value" );
+
+            $match_value = $this->get_match_value();
+            $match_value = trim( $match_value );
+
+            if ( $new_field_value === $match_value ) {
+                p( "New field value should be different from the current value.");
+                return;
+            }
+
+            p( "Performing update for: $option_name" );
+            $field_title = $this->option_field_selection()[ $field_name ];
+            p( "Setting field: $field_title" );
+
+            p( "To new value: $new_field_value" );
+            p( "If the current value is: $match_value");
+
+            $this->apply_updates( $option_name, $field_name, $new_field_value, $match_value, $IDs);
 
         } else {
             p( "Please choose Option and Field name to Update.");
         }
-
-
-
-
-
-
     }
 
-
-
-
-
-
-
-
-
+    function apply_updates( $option_name, $field_name, $new_field_value, $match_value, $IDs ) {
+        p( "Processing: " . count( $IDs ));
+        foreach ( $IDs as $ID => $map ) {
+            //p( "X: " . $map['x'] );
+            //p( "Y: " . $map['y' ] );
+            $current_value = $this->get_post_option_field( $ID, $map['x'], $map['y'], $field_name );
+            if ( $match_value === $current_value ) {
+                p( "Updating: $ID");
+                $this->update_post_option_field( $ID, $map['x'], $map['y'], $field_name, $new_field_value, $match_value );
+            } else {
+                p( "Skipping: $ID Current: $current_value Match: $match_value");
+            }
+        }
+    }
 }
