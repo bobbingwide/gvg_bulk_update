@@ -44,14 +44,20 @@ class vgc_options_page
         BW_::bw_select( '_option', 'Options', $this->get_option_value(), $args );
 
         $args = array( '#options' => $this->option_field_selection() );
+
         BW_::bw_select( '_field_name', "Field name", $this->get_field_name(), $args );
-
-
-       BW_::bw_textarea( "_new_field_value", 80, "New field value", $this->get_new_field_value(), 3 );
-
         etag( "table" );
-        p( isubmit( "vgc_filter", "List", null, "button-primary" ) );
-        p( isubmit( 'vgc_update', 'Update', null, 'button-secondary') );
+
+        p( isubmit( "vgc_list", "List options", null, "button-primary" ) );
+
+        if  ( null !== $this->get_option_value() ) {
+            stag( "table", "widefat" );
+            BW_::bw_textarea("_new_field_value", 80, "Set new field value", $this->get_new_field_value(), 3);
+            BW_::bw_textarea("_match_value", 80, "if current value is", $this->get_match_value(), 3);
+            etag( "table" );
+            p( isubmit( 'vgc_update', 'Update', null, 'button-secondary') );
+        }
+
         etag( "form" );
 
     }
@@ -75,8 +81,7 @@ class vgc_options_page
  * -------- | ------- | ----------
 y | description | needs to be a textarea
 y | image | Post ID
-? | name |
-name
+? | name | Option name can't be changed?
 options
 options_0_increase_base_size_by
 options_0_name
@@ -95,32 +100,48 @@ options_4_name
 options_4_price
 options_5_name
 options_5_price
-price_per_sq_m
-pricing_route
-single_choice_or_multi_choice
-single_price
+y | price_per_sq_m |
+y | pricing_route | Could be a radio button / select list
+y | single_choice_or_multi_choice
+y | single_price
 */
-
     function option_field_selection() {
         $options= [];
         $options['description'] = 'Description';
         $options['image'] = 'Image';
+        $options['price_per_sq_m'] = "Price per square metre";
         $options['pricing_route'] = "Pricing route";
+        $options['single_choice_or_multi_choice'] = "Single choice or multi choice";
         $options['single_price'] = "Price";
         return $options;
     }
 
+    /**
+     * Displays the results of the request.
+     */
+
     function vgc_options_results() {
-        p( "Results");
         $option_value =  $this->get_option_value();
-        p( $option_value );
+        //p( $option_value );
+        if ( null === $option_value ) {
+            return;
+        }
         $option_name = $this->get_option_name( $option_value );
-        p( "option name:");
-        p( $option_name);
+        br( "Option name: ");
+        e( $option_name);
 
         $IDs = $this->get_ids_for_option_name( $option_name );
+        br( "Product count: ");
+        e( count( $IDs ));
 
         $field_name = $this->get_field_name();
+
+        $is_update = $this->check_for_update();
+        if ( $is_update) {
+            $this->apply_updates( $option_name, $field_name, $IDs);
+        }
+
+
         $this->display_option_values( $option_name, $field_name, $IDs );
 
     }
@@ -131,6 +152,11 @@ single_price
         return $option_name;
     }
 
+    /**
+     * Gets the option value for List or Update.
+     *
+     * @return mixed|null
+     */
     function get_option_value() {
         $option_value =  $value = bw_array_get( $_REQUEST, '_option', null );
         return $option_value;
@@ -146,10 +172,12 @@ single_price
         return $field_value;
     }
 
-
+    function get_match_value() {
+        $match_value =  $value = bw_array_get( $_REQUEST, '_match_value', null );
+        return $match_value;
+    }
 
     function vgc_options_select() {
-
         $this->vgc_display_products();
     }
 
@@ -162,9 +190,10 @@ single_price
     }
 
     /**
-     * Returns products with optional_upgrades
+     * Returns products
      *
-     * That could be quite a lot so we need to update the memory limit
+     * That could be quite a lot so we may need to update the memory limit.
+     *
      * eg add this tp wp-config.php
      * ```
      * define('WP_MEMORY_LIMIT', '1024M');
@@ -172,10 +201,9 @@ single_price
      */
     function vgc_get_products() {
         $args = ['post_type' => 'product',
-           //'meta_key' => 'optional_upgrades',
-            // 'meta_value' =>
+            'update_post_term_cache' => false,
+            'cache_results' => false,
             'numberposts' => -1
-
         ];
         $this->posts = get_posts($args);
     }
@@ -387,6 +415,40 @@ single_price
         $option_field = get_post_meta( $ID, $meta_key, true);
         return $option_field;
     }
+
+    function check_for_update() {
+        $update = bw_array_get( $_REQUEST, "vgc_update", null );
+        $is_update = ( null !== $update ) ;
+        return $is_update;
+    }
+
+    function apply_updates( $option_name, $field_name, $IDs ) {
+
+        if ( $option_name && $field_name ) {
+            $new_field_value = $this->get_new_field_value();
+            if ( null === $new_field_value ) {
+                p( "Please set a new field value for Update" );
+                return;
+            }
+            $new_field_value = trim( $new_field_value );
+            if ( '' === $new_field_value ) {
+                p( "Please set a non-blank value for Update");
+                return;
+            }
+            p( "Performing update for $option_name, setting field $field_name to $new_field_value" );
+
+        } else {
+            p( "Please choose Option and Field name to Update.");
+        }
+
+
+
+
+
+
+    }
+
+
 
 
 
