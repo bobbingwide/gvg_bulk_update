@@ -13,10 +13,10 @@ function vgc_options_do_page() {
     oik_require_lib( 'bobbforms');
     $vgc_options_page = new vgc_options_page();
     BW_::oik_menu_header( __( "Bulk update?", "vgc" ), "w70pc" );
-
+    BW_::oik_box( null, null, __( "Form", "vgc" ) , [$vgc_options_page, "vgc_options_form"] );
     BW_::oik_box( null, null, __( "Results", "vgc" ) , [$vgc_options_page, "vgc_options_results"] );
-    BW_::oik_box( null, null, __( "Selection criteria", "vgc" ), [$vgc_options_page, "vgc_options_select"] );
     BW_::oik_box( null, null, __( "Option names", 'vgc'), [ $vgc_options_page, "vgc_options_display"] );
+    BW_::oik_box( null, null, __( "Selection criteria", "vgc" ), [$vgc_options_page, "vgc_options_select"] );
     //BW_::oik_box( null, null, __( "", "vgc" ), "oik_trace_info" );
 
     oik_menu_footer();

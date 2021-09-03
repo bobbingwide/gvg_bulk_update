@@ -12,9 +12,28 @@ class vgc_options_page
     private $option_names;
     private $option_name_IDs;
 
+    private $product_option_map;
+    private $posts;
+    private $available_options_map;
+    private $option_names_map;
+
     function __construct() {
         $this->option_names = [];
         $this->option_name_IDs = [];
+        $this->product_option_map = [];
+        $this->posts = [];
+        /** @var Array of options Areas by post ID */
+        $this->available_options_map = [];
+        /** @var Array of Available options by area by post ID */
+        $this->option_names_map = [];
+
+        $this->vgc_get_products();
+        $this->build_product_option_map();
+    }
+
+    function vgc_options_form() {
+        p( "Form");
+
     }
 
     function vgc_options_results() {
@@ -22,8 +41,8 @@ class vgc_options_page
     }
 
     function vgc_options_select() {
-        $posts = $this->vgc_get_products();
-        $this->vgc_display_products( $posts );
+
+        $this->vgc_display_products();
     }
 
     /**
@@ -50,32 +69,50 @@ class vgc_options_page
             'numberposts' => -1
 
         ];
-        $posts = get_posts($args);
-        return $posts;
+        $this->posts = get_posts($args);
     }
 
-    function vgc_display_products( $posts ) {
+    /**
+     * Builds the product option map
+     */
+    function build_product_option_map( ) {
 
-        p( count( $posts) );
-        stag( 'table', "widefat" );
+        foreach ( $this->posts as $post ) {
 
-        foreach ( $posts as $post ) {
-            if ( 0 === $post->ID ) {
-                print_r($post);
+            $area_count = get_post_meta( $post->ID, 'optional_upgrades', true );
+            //print_r( $area_count );
+            $available_options = $this->vgc_get_available_options( $post->ID, $area_count );
+            $this->available_options_map[ $post->ID] = $available_options;
 
-            }
-            $post_meta = get_post_meta( $post->ID, 'optional_upgrades', true );
-            //print_r( $post_meta );
-            $available_options = $this->vgc_get_available_options( $post->ID, $post_meta );
-            //$titles = vgc_get_titles( $post->ID, $post_meta, $available_options );
-            if ( 0 === $post->ID ) {
-                print_r( $available_options );
-            }
-            $edit_link = $this->vgc_edit_link( $post->ID );
+            //$edit_link = $this->vgc_edit_link( $post->ID );
 
             $option_names = $this->vgc_get_option_names( $post->ID, array_values( $available_options) );
+            $this->option_names_map[ $post->ID] = $option_names;
+            //bw_tablerow( [ $edit_link, $post->post_title, $area_count, implode( '<br />', array_keys( $available_options )), $option_names ] );
 
-            bw_tablerow( [ $edit_link, $post->post_title, $post_meta, implode( '<br />', array_keys( $available_options )), $option_names ] );
+        }
+
+    }
+
+    /**
+     * Displays the product option map
+     *
+     */
+    function vgc_display_products() {
+
+        p( count( $this->posts) );
+        stag( 'table', "widefat" );
+
+        foreach ( $this->posts as $post ) {
+
+            $row = [];
+            $row[] =  $edit_link = $this->vgc_edit_link( $post->ID );
+            $row[] = $post->post_title;
+            $row[] = count( $this->available_options_map[ $post->ID] );
+            $row[] = implode( '<br />', array_keys( $this->available_options_map[ $post->ID ] ));
+            $row[] = $this->option_names_map[ $post->ID ];
+            bw_tablerow( $row );
+            //bw_tablerow( [ $edit_link, , $post_meta, implode( '<br />', array_keys( $available_options )), $option_names ] );
 
         }
         etag('table');
