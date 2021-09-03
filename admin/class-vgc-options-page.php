@@ -9,12 +9,16 @@
 class vgc_options_page
 {
 
+    /** @var array Array of option names showing count of products with this option */
     private $option_names;
+    /** @var array Array of option names showing product IDs with this option */
     private $option_name_IDs;
 
     private $product_option_map;
     private $posts;
+    /** @var Array of options Areas by post ID */
     private $available_options_map;
+    /** @var Array of Available options by area by post ID */
     private $option_names_map;
 
     function __construct() {
@@ -22,23 +26,69 @@ class vgc_options_page
         $this->option_name_IDs = [];
         $this->product_option_map = [];
         $this->posts = [];
-        /** @var Array of options Areas by post ID */
+
         $this->available_options_map = [];
-        /** @var Array of Available options by area by post ID */
+
         $this->option_names_map = [];
 
         $this->vgc_get_products();
         $this->build_product_option_map();
+        $this->sort_option_names();
     }
 
     function vgc_options_form() {
-        p( "Form");
+        bw_form();
+        stag( "table", "widefat" );
+        //BW_::bw_select_arr( "bw_trace_options", __( "Trace level", "oik-bwtrace" ), $options, 'level', array( "#options" => $trace_levels ) );
+        //$value = bw_array_get( $_REQUEST, '_option', null );
+        $args = array( '#options' => $this->option_name_selection() );
+        BW_::bw_select( '_option', 'Options', $this->get_option_value(), $args );
 
+       // bw_tablerow( array( "Options", bw_select( "_batchmove_category_select" ) ) );
+        //bw_textfield( "_batchmove_rows", 15, "Rows per page", null );
+        //oik_batchmove_order_by();
+        //oik_batchmove_order();
+
+        etag( "table" );
+        p( isubmit( "vgc_filter", "Submit", null, "button-primary" ) );
+        etag( "form" );
+
+    }
+
+    function sort_option_names() {
+        ksort( $this->option_names);
+        ksort( $this->option_name_IDs);
+    }
+
+    function option_name_selection() {
+        $options = [];
+
+        foreach ( $this->option_names as $option => $count_IDs) {
+            $options[] = $option . ' ( ' . $count_IDs . ' )';
+        }
+        return $options;
     }
 
     function vgc_options_results() {
         p( "Results");
+        $option_value =  $this->get_option_value();
+        p( $option_value );
+        $option_name = $this->get_option_name( $option_value );
+        p( "option name:");
+        p( $option_name);
     }
+
+    function get_option_name( $option_value ) {
+        $options = array_keys( $this->option_names );
+        $option_name = $options[ $option_value];
+        return $option_name;
+    }
+
+    function get_option_value() {
+        $option_value =  $value = bw_array_get( $_REQUEST, '_option', null );
+        return $option_value;
+    }
+
 
     function vgc_options_select() {
 
@@ -206,12 +256,15 @@ class vgc_options_page
 
     function vgc_options_display() {
         p( "Options");
+
         p( count( $this->option_names ));
+        /*
         stag( 'table', "widefat" );
         foreach ( $this->option_names as $key => $count ) {
             bw_tablerow( [$key, $count ]);
         }
         etag( 'table');
+        */
         stag( 'table', "widefat" );
         foreach ( $this->option_name_IDs as $key => $IDs ) {
             bw_tablerow( [$key, implode( ', ', $IDs ) ]);
