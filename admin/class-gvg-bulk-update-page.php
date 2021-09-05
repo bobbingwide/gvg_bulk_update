@@ -1,12 +1,12 @@
 <?php
 /**
- * @class vgc_options_update to bulk update optional upgrade fields
- * @package vgc
+ * @class gvg_bulk_update_page to bulk update optional upgrade fields
+ * @package gvg_bulk_update
  * @copyright (C) Copyright Bobbing Wide 2021
  *
  */
 
-class vgc_options_page
+class gvg_bulk_update_page
 {
 
     /** @var array Array of option names showing count of products with this option */
@@ -32,12 +32,12 @@ class vgc_options_page
 
         $this->option_names_map = [];
 
-        $this->vgc_get_products();
+        $this->gvg_get_products();
         $this->build_product_option_map();
         $this->sort_option_names();
     }
 
-    function vgc_options_form() {
+    function gvg_bulk_update_form() {
         bw_form();
         stag( "table", "widefat" );
         $args = array( '#options' => $this->option_name_selection() );
@@ -48,14 +48,14 @@ class vgc_options_page
         BW_::bw_select( '_field_name', "Field name", $this->get_field_name(), $args );
         etag( "table" );
 
-        p( isubmit( "vgc_list", "List options", null, "button-primary" ) );
+        p( isubmit( "gvg_list", "List options", null, "button-primary" ) );
 
         if  ( null !== $this->get_option_value() ) {
             stag( "table", "widefat" );
             BW_::bw_textarea("_new_field_value", 80, "Set new field value", $this->get_new_field_value(), 3);
             BW_::bw_textarea("_match_value", 80, "if current value is", $this->get_match_value(), 3);
             etag( "table" );
-            p( isubmit( 'vgc_update', 'Update', null, 'button-secondary') );
+            p( isubmit( 'gvg_update', 'Update', null, 'button-secondary') );
         }
 
         etag( "form" );
@@ -126,7 +126,7 @@ y | single_price
      * Displays the results of the request.
      */
 
-    function vgc_options_results() {
+    function gvg_bulk_update_results() {
         $option_value =  $this->get_option_value();
         //p( $option_value );
         if ( null === $option_value ) {
@@ -183,14 +183,14 @@ y | single_price
         return $match_value;
     }
 
-    function vgc_options_select() {
-        $this->vgc_display_products();
+    function gvg_bulk_update_select() {
+        $this->gvg_display_products();
     }
 
     /**
      * Returns a meta_key for the post_meta query
      */
-    function vgc_meta_key( $x, $y, $field ) {
+    function gvg_meta_key( $x, $y, $field ) {
         $meta_key = sprintf('optional_upgrades_%d_available_options_%d_%s', $x, $y, $field);
         return $meta_key;
     }
@@ -205,7 +205,7 @@ y | single_price
      * define('WP_MEMORY_LIMIT', '1024M');
      * ```
      */
-    function vgc_get_products() {
+    function gvg_get_products() {
         $args = ['post_type' => 'product',
             'update_post_term_cache' => false,
             'cache_results' => false,
@@ -223,14 +223,14 @@ y | single_price
 
             $area_count = get_post_meta( $post->ID, 'optional_upgrades', true );
             //print_r( $area_count );
-            $available_options = $this->vgc_get_available_options( $post->ID, $area_count );
-            $titles = $this->vgc_get_available_titles( $post->ID, $area_count );
+            $available_options = $this->gvg_get_available_options( $post->ID, $area_count );
+            $titles = $this->gvg_get_available_titles( $post->ID, $area_count );
             $this->available_options_map[ $post->ID] = $available_options;
             $this->available_titles_map[ $post->ID ] = $titles;
 
-            //$edit_link = $this->vgc_edit_link( $post->ID );
+            //$edit_link = $this->gvg_edit_link( $post->ID );
 
-            $option_names = $this->vgc_get_option_names( $post->ID, $available_options );
+            $option_names = $this->gvg_get_option_names( $post->ID, $available_options );
             $this->option_names_map[ $post->ID] = $option_names;
             //bw_tablerow( [ $edit_link, $post->post_title, $area_count, implode( '<br />', array_keys( $available_options )), $option_names ] );
 
@@ -242,7 +242,7 @@ y | single_price
      * Displays the product option map
      *
      */
-    function vgc_display_products() {
+    function gvg_display_products() {
 
         p( count( $this->posts) );
         stag( 'table', "widefat" );
@@ -250,7 +250,7 @@ y | single_price
         foreach ( $this->posts as $post ) {
 
             $row = [];
-            $row[] =  $edit_link = $this->vgc_edit_link( $post->ID );
+            $row[] =  $edit_link = $this->gvg_edit_link( $post->ID );
             $row[] = $post->post_title;
             $row[] = count( $this->available_options_map[ $post->ID] );
             $row[] = implode( '<br />', $this->available_titles_map[ $post->ID ] );
@@ -269,7 +269,7 @@ y | single_price
      * @param $ID
      * @return string
      */
-    function vgc_edit_link( $ID ) {
+    function gvg_edit_link( $ID ) {
         $url = get_edit_post_link( $ID );
         $link_wrapper_attributes = 'href=' . esc_url( $url );
         $html = sprintf(
@@ -299,7 +299,7 @@ y | single_price
      * @param $available_options_count
      * @return array
      */
-    function vgc_get_available_options( $ID, $available_options_count ) {
+    function gvg_get_available_options( $ID, $available_options_count ) {
        $available_options = [];
         for (  $i = 0; $i < $available_options_count; $i++ ) {
             $available_options[] = get_post_meta( $ID, "optional_upgrades_{$i}_available_options", true) ;
@@ -307,7 +307,7 @@ y | single_price
         return $available_options;
     }
 
-    function vgc_get_available_titles( $ID, $available_options_count ) {
+    function gvg_get_available_titles( $ID, $available_options_count ) {
         $titles = [];
         for (  $i = 0; $i < $available_options_count; $i++ ) {
             $title = get_post_meta( $ID, "optional_upgrades_{$i}_title_of_area", true);
@@ -322,12 +322,12 @@ y | single_price
      * optional_upgrades_x_available_options | count of available options
      *
      */
-    function vgc_get_option_names( $ID, $available_options ) {
+    function gvg_get_option_names( $ID, $available_options ) {
         $names = [];
         $x = 0;
         foreach ( $available_options as $key => $options ) {
             for (  $y=0; $y < $options; $y++ ) {
-                $meta_key = $this->vgc_meta_key( $x, $y, 'name' );
+                $meta_key = $this->gvg_meta_key( $x, $y, 'name' );
                 $option_name = get_post_meta( $ID, $meta_key, true);
                 if ( '' === $option_name ) {
                     echo "blank option name for $ID $meta_key";
@@ -362,7 +362,7 @@ y | single_price
 
     }
 
-    function vgc_options_display() {
+    function gvg_bulk_update_display() {
         p( "Options");
 
         p( count( $this->option_names ));
@@ -401,7 +401,7 @@ y | single_price
             $ID = $map['id'];
             $post = get_post( $ID );
             $row = [];
-            $row[] = $this->vgc_edit_link( $ID );
+            $row[] = $this->gvg_edit_link( $ID );
             $row[] = $post->post_title;
             //$row[] = $map['x'];
             //$row[] = $map['y'];
@@ -417,18 +417,18 @@ y | single_price
     }
 
     function get_post_option_field( $ID, $x, $y, $name ) {
-        $meta_key = $this->vgc_meta_key( $x, $y, $name );
+        $meta_key = $this->gvg_meta_key( $x, $y, $name );
         $option_field = get_post_meta( $ID, $meta_key, true);
         return $option_field;
     }
 
     function update_post_option_field( $ID, $x, $y, $name, $new_field_value, $match_value ) {
-        $meta_key = $this->vgc_meta_key( $x, $y, $name );
+        $meta_key = $this->gvg_meta_key( $x, $y, $name );
         update_post_meta( $ID, $meta_key, $new_field_value, $match_value);
     }
 
     function check_for_update() {
-        $update = bw_array_get( $_REQUEST, "vgc_update", null );
+        $update = bw_array_get( $_REQUEST, "gvg_update", null );
         $is_update = ( null !== $update ) ;
         return $is_update;
     }
