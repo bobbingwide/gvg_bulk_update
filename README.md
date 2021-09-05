@@ -1,5 +1,5 @@
 # gvg_bulk_update 
-![banner](https://raw.githubusercontent.com/bobbingwide/gvg_bulk_update/main/assets/gvg_bulk_update-banner-772x250.jpg)
+![banner](https://raw.githubusercontent.com/bobbingwide/gvg_bulk_update/tree/main/assets/gvg_bulk_update-banner-772x250.jpg)
 * Contributors: bobbingwide
 * Donate link: https://www.oik-plugins.com/oik/oik-donate/
 * Tags: Bulk update, WooCommerce, ACF, optional upgrades
