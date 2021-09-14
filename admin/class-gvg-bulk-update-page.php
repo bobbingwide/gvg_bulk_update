@@ -128,9 +128,10 @@ class gvg_bulk_update_page
         $options = [];
         $options['single_price'] = "Price";
         $options['description'] = 'Description';
+        $options['name'] = "Name";
         $options['image'] = 'Image';
         $options['pricing_route'] = "Pricing route";
-        $options['price_per_sq_m'] = "Price per square metre";
+        //$options['price_per_sq_m'] = "Price per square metre";
         $options['single_choice_or_multi_choice'] = "Single choice or multi choice";
         $options['options'] = "Options";
         for ($index = 0; $index <= 5; $index++) {
@@ -138,6 +139,7 @@ class gvg_bulk_update_page
             $options["options_{$index}_name"] = "Option $index name";
             $options["options_{$index}_price"] = "Option $index price";
         }
+
         return $options;
     }
 
@@ -237,7 +239,9 @@ class gvg_bulk_update_page
         $args = ['post_type' => 'product',
             'update_post_term_cache' => false,
             'cache_results' => false,
-            'numberposts' => -1
+            'numberposts' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC'
         ];
         $this->posts = get_posts($args);
     }
