@@ -6,7 +6,7 @@
 * Requires at least: 5.7
 * Tested up to: 5.8
 * Requires PHP: 7.3
-* Stable tag: 0.1.0
+* Stable tag: 0.2.0
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,12 +21,15 @@ Bulk update of Optional upgrades for the Garden Vista Group.
 
 
 ## Screenshots 
-1.
-2.
-3.
-4.
+1. Option Selection form
+2. Bulk update fields
+3. Option selection results
+4. Bulk update processing
 
 ## Upgrade Notice 
+# 0.2.0 
+Allows update of optional upgrades Name. Sorts products by title.
+
 # 0.1.0 
 Upgrade for improved performance through cacheing.
 
@@ -35,6 +38,11 @@ Prototype version for the Garden Vista Group.
 
 
 ## Changelog 
+# 0.2.0 
+* Changed: Allow update of the Name field #4
+* Changed: List Products ordered by Title #5
+* TestedL With WordPress 5.8.1
+
 # 0.1.0 
 * Added: Cache product options for faster loading of chosen option #3
 
