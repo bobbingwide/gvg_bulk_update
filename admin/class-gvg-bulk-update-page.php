@@ -63,16 +63,9 @@ class gvg_bulk_update_page
         BW_::bw_select('_field_name', "Field name", $this->get_field_name(), $args);
         etag("table");
 
-        p( isubmit("gvg_list", "List options", null, "button-primary"));
-        p( isubmit( 'gvg_reload', 'Reload option list cache', null, 'button-secondary'));
-
-        if (null !== $this->get_option_value() ) {
-            stag("table", "widefat");
-            BW_::bw_textarea("_new_field_value", 80, "Set new field value", $this->get_new_field_value(), 3);
-            BW_::bw_textarea("_match_value", 80, "if current value is", $this->get_match_value(), 3);
-            etag("table");
-            p(isubmit('gvg_update', 'Update', null, 'button-secondary'));
-        }
+        e( isubmit("gvg_list", "List options", null, "button-primary"));
+        e( ' ');
+        e( isubmit( 'gvg_reload', 'Reload option list cache', null, 'button-secondary'));
 
         etag("form");
 
@@ -167,16 +160,16 @@ class gvg_bulk_update_page
         /** This logic supports the bulk update button.
          * New logic is required to support update for each individual product.
          */
-        $is_update = $this->check_for_update();
-        if ($is_update) {
-            $this->maybe_apply_updates($option_name, $field_name, $IDs);
+        $is_bulk_update = $this->check_for_bulk_update();
+        if ($is_bulk_update) {
+            $this->maybe_apply_bulk_updates($option_name, $field_name, $IDs);
         }
 
         $is_update_by_product = $this->check_for_update_by_product();
         if ( $is_update_by_product ) {
         	$this->apply_updates_by_product( $option_name, $field_name, $IDs );
         }
-        $this->display_option_values($option_name, $field_name, $IDs);
+        //$this->display_option_values($option_name, $field_name, $IDs);
         $this->display_update_form_by_product( $option_name, $field_name, $IDs);
 
     }
@@ -492,7 +485,13 @@ class gvg_bulk_update_page
     	etag( 'table' );
 	    e( ihidden( '_field_name', $field_name) );
 	    e( ihidden( '_option',  $this->get_option_value() ) );
-	    p(isubmit('gvg_update_by_product', 'Update by product', null, 'button-secondary'));
+	    stag( 'table', 'widefat');
+	    BW_::bw_textarea("_new_field_value", 80, "Set new field value", $this->get_new_field_value(), 3);
+	    BW_::bw_textarea("_match_value", 80, "if current value is", $this->get_match_value(), 3);
+	    etag( 'table');
+	    e( isubmit('gvg_bulk_update', 'Bulk update', null, 'button-primary') );
+	    e( ' ');
+	    e( isubmit('gvg_update_by_product', 'Update by product', null, 'button-secondary') );
     	etag( 'form' );
     }
 
@@ -519,11 +518,11 @@ class gvg_bulk_update_page
         update_post_meta($ID, $meta_key, $new_field_value, $match_value);
     }
 
-    function check_for_update()
+    function check_for_bulk_update()
     {
-        $update = bw_array_get($_REQUEST, "gvg_update", null);
-        $is_update = (null !== $update);
-        return $is_update;
+        $update = bw_array_get($_REQUEST, "gvg_bulk_update", null);
+        $is_bulk_update = (null !== $update);
+        return $is_bulk_update;
     }
 
 	function check_for_update_by_product()
@@ -540,18 +539,18 @@ class gvg_bulk_update_page
         return $is_reload;
     }
 
-    function maybe_apply_updates($option_name, $field_name, $IDs)
+    function maybe_apply_bulk_updates($option_name, $field_name, $IDs)
     {
 
         if ($option_name && $field_name) {
             $new_field_value = $this->get_new_field_value();
             if (null === $new_field_value) {
-                p("Please set a new field value for Update");
+                p("Please set a new field value for Bulk update");
                 return;
             }
             $new_field_value = trim($new_field_value);
             if ('' === $new_field_value) {
-                p("Please set a non-blank value for Update");
+                p("Please set a non-blank value for Bulk update");
                 return;
             }
 
@@ -573,7 +572,7 @@ class gvg_bulk_update_page
             $this->apply_updates($option_name, $field_name, $new_field_value, $match_value, $IDs);
 
         } else {
-            p("Please choose Option and Field name to Update.");
+            p("Please choose Option and Field name.");
         }
     }
 
@@ -591,14 +590,14 @@ class gvg_bulk_update_page
 				if ( $new_value !== $match_value ) {
 					$this->apply_update( $ID, $map, $field_name, $match_value, $new_value );
 				} else {
-					p( "Not updating ID $ID ");
+					p( "Not updating ID $ID. Current value not changed");
 				}
 			}
 
 			//$this->apply_updates($option_name, $field_name, $new_field_value, $match_value, $IDs);
 
 		} else {
-			p("Something's gone wrong.");
+			p("Something's gone wrong. Option name and/or field name not set.");
 		}
 	}
 
