@@ -164,13 +164,20 @@ class gvg_bulk_update_page
 
         $field_name = $this->get_field_name();
 
+        /** This logic supports the bulk update button.
+         * New logic is required to support update for each individual product.
+         */
         $is_update = $this->check_for_update();
         if ($is_update) {
             $this->maybe_apply_updates($option_name, $field_name, $IDs);
         }
 
-
+        $is_update_by_product = $this->check_for_update_by_product();
+        if ( $is_update_by_product ) {
+        	$this->apply_updates_by_product( $option_name, $field_name, $IDs );
+        }
         $this->display_option_values($option_name, $field_name, $IDs);
+        $this->display_update_form_by_product( $option_name, $field_name, $IDs);
 
     }
 
@@ -458,11 +465,52 @@ class gvg_bulk_update_page
         etag('table');
     }
 
+	/**
+	 * Displays the form to update the chosen field by product.
+	 *
+	 * @param $option_name
+	 * @param $field_name
+	 * @param $IDs
+	 */
+    function display_update_form_by_product( $option_name, $field_name, $IDs ) {
+	    bw_form();
+    	stag( 'table', 'widefat');
+	    $field_title = $this->option_field_selection()[$field_name];
+	    bw_tablerow(["ID", "Title", "Current value", $field_title]);
+	    foreach ($IDs as $map) {
+		    $ID   =$map['id'];
+		    $post =get_post( $ID );
+		    $row  =[];
+		    $row[]=$this->gvg_edit_link( $ID );
+		    $row[]=$post->post_title;
+		    //$row[] = $this->get_post_option_field($ID, $map['x'], $map['y'], 'name');
+		    $option_field =  $this->get_post_option_field($ID, $map['x'], $map['y'], $field_name);
+		    $row[] = $option_field;
+		    $row[] = $this->get_post_option_textfield($ID, $option_field );
+		    bw_tablerow( $row );
+	    }
+    	etag( 'table' );
+	    e( ihidden( '_field_name', $field_name) );
+	    e( ihidden( '_option',  $this->get_option_value() ) );
+	    p(isubmit('gvg_update_by_product', 'Update by product', null, 'button-secondary'));
+    	etag( 'form' );
+    }
+
     function get_post_option_field($ID, $x, $y, $name)
     {
         $meta_key = $this->gvg_meta_key($x, $y, $name);
         $option_field = get_post_meta($ID, $meta_key, true);
+
         return $option_field;
+    }
+
+    function get_post_option_textfield( $ID, $option_field ) {
+    	$name = "v[$ID]";
+    	$len = 10;
+    	$value = $option_field;
+	    $itext = itext( $name, $len, $value, $class, $extras, $args );
+	    $ihidden = ihidden( "c[$ID]", $value );
+	    return $itext . $ihidden;
     }
 
     function update_post_option_field($ID, $x, $y, $name, $new_field_value, $match_value)
@@ -477,6 +525,13 @@ class gvg_bulk_update_page
         $is_update = (null !== $update);
         return $is_update;
     }
+
+	function check_for_update_by_product()
+	{
+		$update = bw_array_get($_REQUEST, "gvg_update_by_product", null);
+		$is_update = (null !== $update);
+		return $is_update;
+	}
 
     function check_for_reload()
     {
@@ -521,6 +576,63 @@ class gvg_bulk_update_page
             p("Please choose Option and Field name to Update.");
         }
     }
+
+	function apply_updates_by_product($option_name, $field_name, $IDs)
+	{
+
+		if ($option_name && $field_name) {
+			p("Performing update by product for: $option_name");
+			$field_title = $this->option_field_selection()[$field_name];
+			p("Setting field: $field_title");
+
+			foreach ( $IDs as $ID => $map ) {
+				$match_value = $this->get_current_value( $ID);
+				$new_value = $this->get_new_value( $ID );
+				if ( $new_value !== $match_value ) {
+					$this->apply_update( $ID, $map, $field_name, $match_value, $new_value );
+				} else {
+					p( "Not updating ID $ID ");
+				}
+			}
+
+			//$this->apply_updates($option_name, $field_name, $new_field_value, $match_value, $IDs);
+
+		} else {
+			p("Something's gone wrong.");
+		}
+	}
+
+	function get_current_value( $ID) {
+		$current_value=null;
+		if ( isset( $_REQUEST['c'][ $ID ] ) ) {
+			$current_value=$_REQUEST['c'][ $ID ];
+		} else {
+			e( "Can't find current value for ID" );
+		}
+		return $current_value;
+	}
+
+	function get_new_value( $ID) {
+		$new_value=null;
+		if ( isset( $_REQUEST['v'][ $ID ] ) ) {
+			$new_value=$_REQUEST['v'][ $ID ];
+		} else {
+			e( "Can't find new value for ID" );
+		}
+		return $new_value;
+	}
+
+
+	function apply_update( $ID, $map, $field_name, $match_value, $new_field_value ) {
+		$current_value = $this->get_post_option_field($ID, $map['x'], $map['y'], $field_name);
+		if ($match_value === $current_value) {
+			p("Updating: $ID");
+			$this->update_post_option_field($ID, $map['x'], $map['y'], $field_name, $new_field_value, $match_value);
+		} else {
+			p("Skipping: $ID Current: $current_value Match: $match_value");
+		}
+
+	}
 
     function apply_updates($option_name, $field_name, $new_field_value, $match_value, $IDs)
     {
