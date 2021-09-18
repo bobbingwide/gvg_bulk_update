@@ -3,7 +3,7 @@
 Plugin Name: GVG Bulk Update
 Plugin URI: https://github.com/bobbingwide/gvg_bulk_update
 Description: Bulk update Optional upgrades on the Garden Vista website.
-Version: 0.2.0
+Version: 0.3.0
 Author: bobbingwide
 Author URI: https://bobbingwide.com/about-bobbing-wide
 License: GPLv2 or later

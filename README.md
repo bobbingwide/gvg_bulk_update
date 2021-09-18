@@ -4,9 +4,9 @@
 * Donate link: https://www.oik-plugins.com/oik/oik-donate/
 * Tags: Bulk update, WooCommerce, ACF, optional upgrades
 * Requires at least: 5.7
-* Tested up to: 5.8
+* Tested up to: 5.8.1
 * Requires PHP: 7.3
-* Stable tag: 0.2.0
+* Stable tag: 0.3.0
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,9 @@ Bulk update of Optional upgrades for the Garden Vista Group.
 4. Bulk update processing
 
 ## Upgrade Notice 
+# 0.3.0 
+Upgrade for update by product.
+
 # 0.2.0 
 Allows update of optional upgrades Name. Sorts products by title.
 
@@ -38,10 +41,14 @@ Prototype version for the Garden Vista Group.
 
 
 ## Changelog 
+# 0.3.0 
+* Added: Support direct edit of price, description, name and image where it varies by product #6
+
+
 # 0.2.0 
 * Changed: Allow update of the Name field #4
 * Changed: List Products ordered by Title #5
-* TestedL With WordPress 5.8.1
+* Tested: With WordPress 5.8.1
 
 # 0.1.0 
 * Added: Cache product options for faster loading of chosen option #3

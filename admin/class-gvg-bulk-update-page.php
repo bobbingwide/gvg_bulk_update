@@ -153,7 +153,12 @@ class gvg_bulk_update_page
 
         $IDs = $this->get_ids_for_option_name($option_name);
         br("Product count: ");
-        e(count($IDs));
+        if ( $IDs ) {
+	        e( count( $IDs ) );
+        } else {
+        	e( "None!");
+        }
+
 
         $field_name = $this->get_field_name();
 
@@ -201,12 +206,16 @@ class gvg_bulk_update_page
     function get_new_field_value()
     {
         $field_value = $value = bw_array_get($_REQUEST, '_new_field_value', null);
+        //bw_trace2( $_REQUEST, "request", false );
+        //bw_trace2( $field_value, "field_value", false );
+        $field_value = wp_unslash( $field_value );
         return $field_value;
     }
 
     function get_match_value()
     {
         $match_value = $value = bw_array_get($_REQUEST, '_match_value', null);
+	    $match_value = wp_unslash( $match_value );
         return $match_value;
     }
 
@@ -367,8 +376,9 @@ class gvg_bulk_update_page
             for ($y = 0; $y < $options; $y++) {
                 $meta_key = $this->gvg_meta_key($x, $y, 'name');
                 $option_name = get_post_meta($ID, $meta_key, true);
+                $option_name = trim( $option_name );
                 if ('' === $option_name) {
-                    echo "blank option name for $ID $meta_key";
+                    echo "Blank option name for $ID $meta_key";
                     //print_r( $available_options);
                 }
                 $names[] = $option_name;
@@ -479,15 +489,15 @@ class gvg_bulk_update_page
 		    //$row[] = $this->get_post_option_field($ID, $map['x'], $map['y'], 'name');
 		    $option_field =  $this->get_post_option_field($ID, $map['x'], $map['y'], $field_name);
 		    $row[] = $option_field;
-		    $row[] = $this->get_post_option_textfield($ID, $option_field );
+		    $row[] = $this->get_post_option_entryfield($ID, $option_field, $field_name );
 		    bw_tablerow( $row );
 	    }
     	etag( 'table' );
 	    e( ihidden( '_field_name', $field_name) );
 	    e( ihidden( '_option',  $this->get_option_value() ) );
 	    stag( 'table', 'widefat');
-	    BW_::bw_textarea("_new_field_value", 80, "Set new field value", $this->get_new_field_value(), 3);
-	    BW_::bw_textarea("_match_value", 80, "if current value is", $this->get_match_value(), 3);
+	    BW_::bw_textarea("_new_field_value", 80, "Set new field value", null /* $this->get_new_field_value() */, 3);
+	    BW_::bw_textarea("_match_value", 80, "if current value is", null /* $this->get_match_value() */, 3);
 	    etag( 'table');
 	    e( isubmit('gvg_bulk_update', 'Bulk update', null, 'button-primary') );
 	    e( ' ');
@@ -503,12 +513,46 @@ class gvg_bulk_update_page
         return $option_field;
     }
 
-    function get_post_option_textfield( $ID, $option_field ) {
+    function get_post_option_entryfield( $ID, $option_field, $field_name ) {
+    	//e( $field_name );
+    	switch ( $field_name ) {
+		    case "description":
+		    	$field = $this->get_post_option_textarea( $ID, $option_field );
+		    	break;
+		    case "single_price":
+			    $field =  $this->get_post_option_textfield($ID, $option_field );
+	            break;
+
+		    default:
+		    	$field =  $this->get_post_option_textfield($ID, $option_field, 50 );
+	    }
+	    return $field;
+    }
+
+	function get_post_option_textarea( $ID, $option_field ) {
+		$name = "v[$ID]";
+		$len = 80;
+		$rows = 2;
+		$value = $option_field;
+		$itext = iarea( $name, $len, $value, $rows );
+		$ihidden = ihidden( "c[$ID]", esc_attr( $value ) );
+		return $itext . $ihidden;
+	}
+
+	/**
+	 * <option value="83">Aluminium Polycarbonate Cold Frame 3' x 2' (single) ( 45 )</option>
+	 *
+	 * @param $ID
+	 * @param $option_field
+	 * @param $len
+	 *
+	 * @return string
+	 */
+    function get_post_option_textfield( $ID, $option_field, $len=10 ) {
     	$name = "v[$ID]";
-    	$len = 10;
     	$value = $option_field;
-	    $itext = itext( $name, $len, $value, $class, $extras, $args );
-	    $ihidden = ihidden( "c[$ID]", $value );
+	    $itext = itext( $name, $len, $value );
+	    $ihidden = ihidden( "c[$ID]", esc_attr( $value ) );
 	    return $itext . $ihidden;
     }
 
@@ -602,12 +646,14 @@ class gvg_bulk_update_page
 	}
 
 	function get_current_value( $ID) {
+    	//bw_trace2( $_REQUEST, "request" );
 		$current_value=null;
 		if ( isset( $_REQUEST['c'][ $ID ] ) ) {
 			$current_value=$_REQUEST['c'][ $ID ];
 		} else {
 			e( "Can't find current value for ID" );
 		}
+		$current_value = wp_unslash( $current_value );
 		return $current_value;
 	}
 
@@ -618,12 +664,31 @@ class gvg_bulk_update_page
 		} else {
 			e( "Can't find new value for ID" );
 		}
+		$new_value = wp_unslash( $new_value );
 		return $new_value;
 	}
 
 
+	/**
+	 * Applys the update to the post meta field.
+	 *
+	 * This checks that the current value in the database
+	 * matches the current value from the request.
+	 *
+	 * But there's a problem with slashes.
+	 * Given that we pass the match value through to the update call, is this test really necessary?
+	 *
+	 * @param $ID
+	 * @param $map
+	 * @param $field_name
+	 * @param $match_value
+	 * @param $new_field_value
+	 */
 	function apply_update( $ID, $map, $field_name, $match_value, $new_field_value ) {
+
+    	//bw_trace2();
 		$current_value = $this->get_post_option_field($ID, $map['x'], $map['y'], $field_name);
+		//bw_trace2( $current_value, "current_value");
 		if ($match_value === $current_value) {
 			p("Updating: $ID");
 			$this->update_post_option_field($ID, $map['x'], $map['y'], $field_name, $new_field_value, $match_value);
@@ -691,7 +756,6 @@ class gvg_bulk_update_page
      * @param $option
      * @param $autoload
      */
-
     function update_option( $option_name, $option, $autoload ) {
         $ser = serialize( $option);
         p( "$option_name:" . strlen( $ser ));
