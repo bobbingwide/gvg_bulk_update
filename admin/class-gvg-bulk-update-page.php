@@ -206,17 +206,13 @@ class gvg_bulk_update_page
     function get_new_field_value()
     {
         $field_value = $value = bw_array_get($_REQUEST, '_new_field_value', null);
-        //bw_trace2( $_REQUEST, "request", false );
-        //bw_trace2( $field_value, "field_value", false );
-        $field_value = wp_unslash( $field_value );
         return $field_value;
     }
 
     function get_match_value()
     {
         $match_value = $value = bw_array_get($_REQUEST, '_match_value', null);
-	    $match_value = wp_unslash( $match_value );
-        return $match_value;
+	    return $match_value;
     }
 
     function gvg_bulk_update_select()
@@ -509,6 +505,7 @@ class gvg_bulk_update_page
     {
         $meta_key = $this->gvg_meta_key($x, $y, $name);
         $option_field = get_post_meta($ID, $meta_key, true);
+        //bw_trace2( $option_field, "option_field");
 
         return $option_field;
     }
@@ -610,9 +607,6 @@ class gvg_bulk_update_page
             $field_title = $this->option_field_selection()[$field_name];
             p("Setting field: $field_title");
 
-            p("To new value: $new_field_value");
-            p("If the current value is: $match_value");
-
             $this->apply_updates($option_name, $field_name, $new_field_value, $match_value, $IDs);
 
         } else {
@@ -631,6 +625,7 @@ class gvg_bulk_update_page
 			foreach ( $IDs as $ID => $map ) {
 				$match_value = $this->get_current_value( $ID);
 				$new_value = $this->get_new_value( $ID );
+
 				if ( $new_value !== $match_value ) {
 					$this->apply_update( $ID, $map, $field_name, $match_value, $new_value );
 				} else {
@@ -646,14 +641,12 @@ class gvg_bulk_update_page
 	}
 
 	function get_current_value( $ID) {
-    	//bw_trace2( $_REQUEST, "request" );
-		$current_value=null;
+    	$current_value=null;
 		if ( isset( $_REQUEST['c'][ $ID ] ) ) {
 			$current_value=$_REQUEST['c'][ $ID ];
 		} else {
 			e( "Can't find current value for ID" );
 		}
-		$current_value = wp_unslash( $current_value );
 		return $current_value;
 	}
 
@@ -664,10 +657,8 @@ class gvg_bulk_update_page
 		} else {
 			e( "Can't find new value for ID" );
 		}
-		$new_value = wp_unslash( $new_value );
 		return $new_value;
 	}
-
 
 	/**
 	 * Applys the update to the post meta field.
@@ -685,18 +676,40 @@ class gvg_bulk_update_page
 	 * @param $new_field_value
 	 */
 	function apply_update( $ID, $map, $field_name, $match_value, $new_field_value ) {
-
+        $umatch_value = wp_unslash( $match_value );
+        $unew_field_value = wp_unslash( $new_field_value );
+        br();
+        e( $ID );
+        // The current value doesn't need unslashing, but may need trimming.
+        $current_value = $this->get_post_option_field($ID, $map['x'], $map['y'], $field_name);
+        br();
+        e( "Current: $current_value.");
     	//bw_trace2();
-		$current_value = $this->get_post_option_field($ID, $map['x'], $map['y'], $field_name);
+        br();
+        e( "Match: $umatch_value." );
+        br();
+        e( "New: $unew_field_value." );
+
 		//bw_trace2( $current_value, "current_value");
-		if ($match_value === $current_value) {
-			p("Updating: $ID");
-			$this->update_post_option_field($ID, $map['x'], $map['y'], $field_name, $new_field_value, $match_value);
+		if ( $umatch_value === trim( $current_value ) ) {
+			p( "Updating: $ID to $unew_field_value." );
+			// Pass the current value not the match value since this is what's used by update_post_meta().
+			$this->update_post_option_field($ID, $map['x'], $map['y'], $field_name, $new_field_value, $current_value);
 		} else {
-			p("Skipping: $ID Current: $current_value Match: $match_value");
+			p( "Skipping: $ID Current: $current_value. Match: $umatch_value. New: $unew_field_value." );
 		}
 
 	}
+
+    /**
+     * Apply bulk updates where the current value matches 'if current value is'.
+     *
+     * @param $option_name
+     * @param $field_name
+     * @param $new_field_value
+     * @param $match_value
+     * @param $IDs
+     */
 
     function apply_updates($option_name, $field_name, $new_field_value, $match_value, $IDs)
     {
@@ -704,13 +717,7 @@ class gvg_bulk_update_page
         foreach ($IDs as $ID => $map) {
             //p( "X: " . $map['x'] );
             //p( "Y: " . $map['y' ] );
-            $current_value = $this->get_post_option_field($ID, $map['x'], $map['y'], $field_name);
-            if ($match_value === $current_value) {
-                p("Updating: $ID");
-                $this->update_post_option_field($ID, $map['x'], $map['y'], $field_name, $new_field_value, $match_value);
-            } else {
-                p("Skipping: $ID Current: $current_value Match: $match_value");
-            }
+            $this->apply_update( $ID, $map, $field_name, $match_value, $new_field_value );
         }
     }
 
