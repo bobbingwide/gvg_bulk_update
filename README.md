@@ -6,7 +6,7 @@
 * Requires at least: 5.7
 * Tested up to: 5.8.1
 * Requires PHP: 7.3
-* Stable tag: 0.3.0
+* Stable tag: 0.4.0
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,9 @@ Bulk update of Optional upgrades for the Garden Vista Group.
 4. Bulk update processing
 
 ## Upgrade Notice 
+# 0.4.0 
+Upgrade for improved update by product or bulk update.
+
 # 0.3.0 
 Upgrade for update by product.
 
@@ -41,9 +44,14 @@ Prototype version for the Garden Vista Group.
 
 
 ## Changelog 
+# 0.4.0 
+* Changed: Improve update by product or bulk update #6
+* Fixed: Avoid duplicated options by using trim() #7
+* Changed: Temporarily disable display of Option names and Products #8
+* Added: Start adding PHPUnit tests #9
+
 # 0.3.0 
 * Added: Support direct edit of price, description, name and image where it varies by product #6
-
 
 # 0.2.0 
 * Changed: Allow update of the Name field #4
