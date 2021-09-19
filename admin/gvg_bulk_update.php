@@ -13,8 +13,8 @@ function gvg_bulk_update_do_page() {
     BW_::oik_menu_header( __( "Bulk update optional upgrades", "gvg_bulk_update" ), "w70pc" );
     BW_::oik_box( null, null, __( "Form", "gvg_bulk_update" ) , [$gvg_bulk_update_page, "gvg_bulk_update_form"] );
     BW_::oik_box( null, null, __( "Results", "gvg_bulk_update" ) , [$gvg_bulk_update_page, "gvg_bulk_update_results"] );
-    BW_::oik_box( null, null, __( "Option names", 'gvg_bulk_update'), [ $gvg_bulk_update_page, "gvg_bulk_update_display"] );
-    BW_::oik_box( null, null, __( "Products", "gvg_bulk_update" ), [$gvg_bulk_update_page, "gvg_display_products"] );
+    //BW_::oik_box( null, null, __( "Option names", 'gvg_bulk_update'), [ $gvg_bulk_update_page, "gvg_bulk_update_display"] );
+    //BW_::oik_box( null, null, __( "Products", "gvg_bulk_update" ), [$gvg_bulk_update_page, "gvg_display_products"] );
     //BW_::oik_box( null, null, __( "", "gvg_bulk_update" ), "oik_trace_info" );
 
     oik_menu_footer();
