@@ -5,7 +5,7 @@ Tags: Bulk update, WooCommerce, ACF, optional upgrades
 Requires at least: 5.7
 Tested up to: 5.8.1
 Requires PHP: 7.3
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,6 +26,9 @@ Bulk update of Optional upgrades for the Garden Vista Group.
 4. Bulk update processing
  
 == Upgrade Notice ==
+= 0.4.1 = 
+Upgrade to update Price per sq m and Price per percentage.
+
 = 0.4.0 = 
 Upgrade for improved update by product or bulk update.
 
@@ -43,6 +46,9 @@ Prototype version for the Garden Vista Group.
 
 
 == Changelog ==
+= 0.4.1 =
+* Changed: Support editing price_per_sq_m and price_per_percentage #10
+
 = 0.4.0 = 
 * Changed: Improve update by product or bulk update #6
 * Fixed: Avoid duplicated options by using trim() #7 
