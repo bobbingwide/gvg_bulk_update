@@ -120,6 +120,8 @@ class gvg_bulk_update_page
     {
         $options = [];
         $options['single_price'] = "Price";
+        $options['price_per_sq_m'] = "Price per sq m";
+        $options['price_per_percentage'] = "Percentage of starting price";
         $options['description'] = 'Description';
         $options['name'] = "Name";
         $options['image'] = 'Image';
@@ -333,6 +335,7 @@ class gvg_bulk_update_page
      * description
      * pricing_route
      * single_price
+     * price_per_sq_m
      * etc
      *
      * @param $ID
