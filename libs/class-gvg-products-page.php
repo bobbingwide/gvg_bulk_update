@@ -15,8 +15,11 @@ class GVG_products_page {
 
     private $product_search;
     private $posts; // All products
-    private $matched; // Matched products
+    private $matched_posts; // Matched products - array of indexes to matched posts.
     private $match_array;
+
+    private $first_product;
+
     function __construct() {
 
        // $this->product_search = get_product_search();
@@ -32,6 +35,9 @@ class GVG_products_page {
     function products_form() {
         $this->get_product_search();
         //BW_::p( "Products form");
+        if ( empty( $this->product_search )) {
+            BW_::p( "Specify a search string to list products eg. 'Halls Cotswold'");
+        }
         bw_form();
         stag( 'table', 'widefat' );
         BW_::bw_textfield( "product_search", 80, "Product search", $this->product_search   );
@@ -43,9 +49,17 @@ class GVG_products_page {
     }
 
     function products_results() {
+        if ( empty( $this->product_search )) {
+            BW_::p( "Specify a search string to list products eg. 'Halls Cotswold'");
+            return;
+        }
         //BW_::p( "Products results");
         $this->run_search();
+        BW_::p( "Searched: " . count( $this->posts ));
         $this->match();
+        BW_::p("Matched: " . count( $this->matched_posts ) );
+        $this->report_first_product();
+        $this->report_matches();
 
     }
 
@@ -61,16 +75,23 @@ class GVG_products_page {
             ];
 
         $this->posts = get_posts( $args );
-        BW_::p( count( $this->posts ));
+
     }
 
 
     function match() {
         $this->match_array = $this->get_match_array( $this->product_search );
+        $this->matched_posts = [];
         foreach ( $this->posts as $key => $post ) {
             if ( $this->match_title( $post->post_title )) {
-                BW_::p($post->post_title);
+                //BW_::p($post->post_title);
                 $this->matched_posts[] = $key;
+                /*
+                echo $key;
+                echo  $post->ID;
+                echo $post->post_title;
+                echo PHP_EOL;
+                */
             }
         }
     }
@@ -79,10 +100,14 @@ class GVG_products_page {
      * Matches the title to the search.
      *
      * Get match array removes the `w x l` part of the string to make matching easier.
-     * It's also case insensitive.
+     * It takes into account ft or ' used to represent feet.
      *
-     * Whether or not we fully match each word in the string is to be determined.
-     * Try with "H Q" for "Halls Qube"
+     * The search is case insensitive and only checks the first part of each word
+     *
+     * Examples:
+     * - "H Q" will match "Halls Qube"
+     * - "H C ( Bi g" will match "Halls Cotswold (Eden) Birdlip w x l ft Green Greenhouse
+     *   where w = 4 and l - 4, 6, 8
      */
     function match_title( $string ) {
         $matched = false;
@@ -98,6 +123,12 @@ class GVG_products_page {
       return $matched;
     }
 
+    /**
+     * Returns the array of strings on which to perform the match.
+     *
+     * @param $string
+     * @return array
+     */
     function get_match_array( $string ) {
         $lcstring = strtolower( $string );
         $array = explode( ' ', $lcstring );
@@ -123,6 +154,130 @@ class GVG_products_page {
         }
        //print_r($match_array );
         return $match_array;
+    }
+
+    function report_matches() {
+        //print_r( $this->matched_posts );
+        stag( "table");
+        bw_tablerow( ["ID", "Title", "Content", "Short desc"], 'tr', 'th');
+        foreach ( $this->matched_posts as $index => $posts_key ) {
+            $post = $this->posts[ $posts_key ];
+            $this->format_row( $post );
+            if ( $index >= 0 ) {
+                $this->offer_buttons( $post );
+            }
+        }
+        etag( "table");
+    }
+
+    /**
+     * Formats the row showing the post content and post excerpt for each post.
+     * @param $posts_key
+     */
+    function format_row( $post) {
+        $row = [];
+        $row[] = $this->edit_link( $post->ID );
+        $row[] = $post->post_title;
+        $this->first_difference = $this->find_first_difference( $post->post_content );
+        $row[] = $this->annotate( $post->post_content, $this->first_difference );
+        $row[] = $post->post_excerpt;
+
+        //$row[] = $this->first_difference;
+        bw_tablerow( $row);
+    }
+
+    /**
+     * Returns an edit link for a post
+     * @param $ID
+     * @return string
+     */
+    function edit_link($ID)  {
+        $url = get_edit_post_link($ID);
+        $link_wrapper_attributes = 'href=' . esc_url($url);
+        $html = sprintf(
+            '<a %1$s>%2$s</a>',
+            $link_wrapper_attributes,
+            $ID
+        );
+        return $html;
+    }
+
+    function report_first_product() {
+        if ( !count ($this->matched_posts ) ) {
+            return;
+        }
+        $posts_key = $this->matched_posts[ 0 ];
+        $post = $this->posts[ $posts_key ];
+        $this->first_product = $post;
+        bw_form();
+        stag( 'table', 'widefat');
+        bw_tablerow( ['ID', $this->edit_link( $post->ID )] );
+        bw_tablerow( ['Title', $post->post_title] );
+
+        BW_::bw_textarea( 'post_content', 160, 'Post content', $post->post_content );
+
+        BW_::bw_textarea( 'post_excerpt', 160, 'Post excerpt', $post->post_excerpt );
+        etag( 'table');
+        e( ihidden( 'product_search', $this->product_search));
+        e( isubmit("update", "Update", null, "button-primary"));
+        etag( 'form');
+
+    }
+
+    /**
+     * Determines the first difference between two strings for autosplit.
+     *
+     * Example:
+     *                  ----+----1----+----2----
+     * first_content = "This is the description."
+     * post_content  = "This is the description. The autosplit should be at the first period."
+     *
+     * then the autosplit position is after the 24th character.
+     *
+     * @param $post_content
+     */
+    function find_first_difference( $post_content ) {
+        $first_content = $this->first_product->post_content;
+        $first_difference = null;
+        $stopat = min( strlen( $first_content), strlen( $post_content ) );
+        for ( $i = 0; $i < $stopat; $i++ ) {
+            if ( $first_content[ $i ] != $post_content[$i] ) {
+                $first_difference = $i;
+                break;
+            }
+        }
+        return $first_difference;
+    }
+
+    function offer_buttons( $post ) {
+        if ( $this->first_difference ) {
+            stag('tr');
+            stag('td');
+            bw_form();
+            e(ihidden('ID', $post->ID));
+            e(ihidden('product_search', $this->product_search));
+            e(ihidden('splitat', $this->first_difference));
+            e(isubmit('autosplit', 'Autosplit', null, 'button-secondary '));
+            etag('form');
+            etag('td');
+            etag('tr');
+        }
+
+    }
+
+    function annotate( $post_content, $first_difference ) {
+        if ( null == $first_difference ) {
+            return $post_content;
+        }
+        $before = substr($post_content, 0, $first_difference);
+        $after = substr($post_content, $first_difference);
+        $annotated = $before;
+        $annotated .= '<br /><span style="background-color: yellow">&nbsp;';
+        $annotated .= $first_difference;
+        $annotated .= '&nbsp;</span><br />';
+        $annotated .= $after;
+
+        return $annotated ;
     }
 
 }
