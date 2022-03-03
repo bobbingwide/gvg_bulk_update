@@ -121,6 +121,7 @@ class GVG_products_page {
         $this->match();
         BW_::p("Matched: " . count( $this->matched_posts ) );
         $this->report_first_product();
+        $this->display_matches();
         $this->report_matches();
 
     }
@@ -223,13 +224,27 @@ class GVG_products_page {
         stag( "table");
         bw_tablerow( ["ID", "Title", "Content", "Short desc"], 'tr', 'th');
         foreach ( $this->matched_posts as $index => $posts_key ) {
-            $post = $this->posts[ $posts_key ];
-            $this->format_row( $post );
             if ( $index >= 0 ) {
-                $this->offer_buttons( $post );
+                $post = $this->posts[$posts_key];
+                $this->format_row($post);
+                $this->offer_buttons($post);
             }
         }
         etag( "table");
+    }
+
+    function display_matches() {
+        foreach ( $this->matched_posts as $index => $posts_key ) {
+
+            if ( $index > 0 ) {
+                $post = $this->posts[ $posts_key ];
+                $this->first_difference = $this->find_first_difference( $post->post_content );
+                BW_::p( $this->annotate( $post->post_content, $this->first_difference ) );
+                $this->display_update_form( $posts_key );
+                $this->offer_buttons( $post );
+            }
+        }
+
     }
 
     /**
@@ -264,20 +279,25 @@ class GVG_products_page {
         return $html;
     }
 
-    function report_first_product() {
-        if ( !count ($this->matched_posts ) ) {
+    function report_first_product()
+    {
+        if (!count($this->matched_posts)) {
             return;
         }
-        $posts_key = $this->matched_posts[ 0 ];
+        $posts_key = $this->matched_posts[0];
         $post = $this->posts[ $posts_key ];
         $this->first_product = $post;
+        $this->display_update_form($posts_key);
+    }
+
+    function display_update_form( $posts_key ) {
+        $post = $this->posts[ $posts_key ];
+        //$this->first_product = $post;
         bw_form();
         stag( 'table', 'widefat');
         bw_tablerow( ['ID', $this->edit_link( $post->ID )] );
         bw_tablerow( ['Title', $post->post_title] );
-
         BW_::bw_textarea( 'post_content', 160, 'Post content', $post->post_content );
-
         BW_::bw_textarea( 'post_excerpt', 160, 'Post excerpt', $post->post_excerpt );
         etag( 'table');
         e( ihidden( 'ID', $post->ID ));
@@ -285,7 +305,6 @@ class GVG_products_page {
         e( ihidden( 'product_search', $this->product_search));
         e( isubmit("update", "Update", null, "button-primary"));
         etag( 'form');
-
     }
 
     function get_original_length( $post ) {
