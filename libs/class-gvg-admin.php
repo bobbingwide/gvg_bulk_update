@@ -49,8 +49,10 @@ class GVG_Admin
 
     function nav_tab_products() {
         $gvg_products_page = new GVG_products_page();
+
         BW_::oik_menu_header( __( "Products", "gvg_bulk_update" ), "w100pc" );
         BW_::oik_box( null, null, __( "Form", "gvg_bulk_update" ) , [$gvg_products_page, "products_form"] );
+        $gvg_products_page->maybe_update();
         BW_::oik_box( null, null, __( "Results", "gvg_bulk_update" ) , [$gvg_products_page, "products_results"] );
         oik_menu_footer();
         bw_flush();

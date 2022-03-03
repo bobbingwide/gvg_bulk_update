@@ -20,6 +20,8 @@ class GVG_products_page {
 
     private $first_product;
 
+    private $post_to_update;
+
     function __construct() {
 
        // $this->product_search = get_product_search();
@@ -46,6 +48,66 @@ class GVG_products_page {
         e( isubmit("search", "Search products", null, "button-primary"));
         etag( 'form');
 
+    }
+
+    function get_update_request() {
+        $update = bw_array_get( $_POST, "update", null );
+        $ID = bw_array_get( $_POST, "ID", null );
+
+        $original_length = bw_array_get( $_POST, 'original_length', null );
+        $update_requested = $update && $ID && $original_length;
+        if ( $update_requested ) {
+            $update_requested = $this->validate_update_request( $ID, $original_length );
+        }
+        return $update_requested;
+    }
+
+    function validate_update_request( $ID, $original_length ) {
+        $valid = false;
+        if ( is_numeric( $ID ) ) {
+            $post = get_post( $ID );
+            if ( $post ) {
+                if ( $post->post_type === 'product' ) {
+                    $current_length = $this->get_original_length($post);
+                    // The $original length is a string!
+                    $valid = (is_numeric( $original_length ) && ( $current_length === ( int ) $original_length ) );
+                    if ( !$valid ) {
+                        BW_::p( "Current length $current_length original length $original_length mismatch.");
+                    }
+                } else {
+                    BW_::p( "Not a product");
+                }
+            } else {
+                BW_::p( "Post not found");
+            }
+        }
+        if ( !$valid ) {
+            BW_::p( "Invalid update request for ID: $ID");
+        } else {
+            $this->post_to_update = $post;
+        }
+        return $valid;
+    }
+
+    function maybe_update() {
+        $update_requested  = $this->get_update_request();
+
+        if ( $update_requested ) {
+            BW_::p( "Updating post");
+            $this->perform_update();
+        }
+    }
+
+    function perform_update() {
+        $post = [];
+        $post['ID'] = $this->post_to_update->ID;
+        $post_content = bw_array_get( $_POST, 'post_content', null );
+        $post_content = rtrim( $post_content);
+        $post['post_content'] = $post_content;
+        $post_excerpt = bw_array_get( $_POST, 'post_excerpt', null );
+        $post_excerpt = rtrim( $post_excerpt );
+        $post['post_excerpt'] = $post_excerpt;
+        wp_update_post( $post );
     }
 
     function products_results() {
@@ -218,10 +280,18 @@ class GVG_products_page {
 
         BW_::bw_textarea( 'post_excerpt', 160, 'Post excerpt', $post->post_excerpt );
         etag( 'table');
+        e( ihidden( 'ID', $post->ID ));
+        e( ihidden( 'original_length', $this->get_original_length( $post )));
         e( ihidden( 'product_search', $this->product_search));
         e( isubmit("update", "Update", null, "button-primary"));
         etag( 'form');
 
+    }
+
+    function get_original_length( $post ) {
+        $original_length = strlen( $post->post_content );
+        $original_length += strlen( $post->post_excerpt );
+        return $original_length;
     }
 
     /**
@@ -246,11 +316,14 @@ class GVG_products_page {
                 break;
             }
         }
+        if ( null === $first_difference && $stopat <= strlen( $post_content) ) {
+            $first_difference = $stopat;
+        }
         return $first_difference;
     }
 
     function offer_buttons( $post ) {
-        if ( $this->first_difference ) {
+        if ( $this->first_difference && ( $this->first_difference < strlen( $post->post_content ) ) ) {
             stag('tr');
             stag('td');
             bw_form();
@@ -266,7 +339,7 @@ class GVG_products_page {
     }
 
     function annotate( $post_content, $first_difference ) {
-        if ( null == $first_difference ) {
+        if ( null === $first_difference ) {
             return $post_content;
         }
         $before = substr($post_content, 0, $first_difference);
