@@ -3,9 +3,9 @@
 /**
  * @copyright (C) Copyright Bobbing Wide 2022
  * GVG_products_page to bulk update:
- * - Product description,
- * - Product short description
- * - and/or Product Additions
+ * - Product description ( post_content )
+ * - Product short description  ( post_excerpt )
+ * - and/or Product Additions ( post meta keys standard_features_1 and standard_features_2 )
  * for products in the same range.
  *
  *
@@ -24,9 +24,17 @@ class GVG_products_page {
     private $post_content;
     private $post_excerpt;
 
-    function __construct() {
+    private $first_differences;
 
-       // $this->product_search = get_product_search();
+    /**
+     * Constructor method.
+     *
+     * Should probably initialise the class variables.
+     */
+    function __construct() {
+        $this->posts = [];
+        $this->matched_posts = [];
+
 
     }
 
@@ -40,7 +48,7 @@ class GVG_products_page {
         $this->get_product_search();
         //BW_::p( "Products form");
         if ( empty( $this->product_search )) {
-            BW_::p( "Specify a search string to list products eg. 'Halls Cotswold'");
+            BW_::p( "Specify a search string to list products eg. 'Halls Cotswold'  or 'h co'");
         }
         bw_form();
         stag( 'table', 'widefat' );
@@ -173,9 +181,21 @@ class GVG_products_page {
         BW_::p( "Searched: " . count( $this->posts ));
         $this->match();
         BW_::p("Matched: " . count( $this->matched_posts ) );
-        $this->report_first_product();
+
+        if (!count($this->matched_posts)) {
+            return;
+        }
+        $posts_key = $this->matched_posts[0];
+        $post = $this->posts[ $posts_key ];
+        $this->first_product = $post;
+
+        $this->find_first_differences();
+
+        //$this->display_update_form( $post );
         $this->display_matches();
-        $this->report_matches();
+        //$this->display_update_form($posts_key);
+
+
 
     }
 
@@ -272,30 +292,57 @@ class GVG_products_page {
         return $match_array;
     }
 
+    /**
+     * Displays a summary table of matches.
+     *
+     */
     function report_matches() {
         //print_r( $this->matched_posts );
+        //h3( "Summary table");
+        if (!count($this->matched_posts)) {
+            return;
+        }
         stag( "table");
         bw_tablerow( ["ID", "Title", "Content", "Short desc"], 'tr', 'th');
         foreach ( $this->matched_posts as $index => $posts_key ) {
             if ( $index >= 0 ) {
                 $post = $this->posts[$posts_key];
-                $this->format_row($post);
+                $this->format_row( $post, $index );
                 $this->offer_buttons($post);
             }
         }
         etag( "table");
     }
 
+    /**
+     * Finds the first difference between the current post and the first post.
+     *
+     * If these are all the same then we can perform a bulk update.
+     */
+    function find_first_differences() {
+        foreach ( $this->matched_posts as $index => $posts_key ) {
+            $post = $this->posts[ $posts_key ];
+            if ( $index > 0 ) {
+
+                $this->first_differences[ $index ] = $this->find_first_difference( $post->post_content );
+            } else {
+                $this->first_differences[ $index ] = strlen( $post->post_content );
+            }
+        }
+        //print_r( $this->first_differences );
+
+    }
+
     function display_matches() {
         foreach ( $this->matched_posts as $index => $posts_key ) {
 
-            if ( $index > 0 ) {
+            //if ( $index > 0 ) {
                 $post = $this->posts[ $posts_key ];
-                $this->first_difference = $this->find_first_difference( $post->post_content );
-                BW_::p( $this->annotate( $post->post_content, $this->first_difference ) );
-                $this->display_update_form( $posts_key );
+                //$this->first_difference = $this->first_differences[ $index ];
+                //BW_::p( $this->annotate( $post->post_content, $this->first_difference ) );
+                $this->display_update_form( $post, $index );
                 $this->offer_buttons( $post );
-            }
+            //}
         }
 
     }
@@ -304,11 +351,11 @@ class GVG_products_page {
      * Formats the row showing the post content and post excerpt for each post.
      * @param $posts_key
      */
-    function format_row( $post) {
+    function format_row( $post, $index ) {
         $row = [];
         $row[] = $this->edit_link( $post->ID );
         $row[] = $post->post_title;
-        $this->first_difference = $this->find_first_difference( $post->post_content );
+        $this->first_difference = $this->first_differences[ $index ];
         $row[] = $this->annotate( $post->post_content, $this->first_difference );
         $row[] = $post->post_excerpt;
 
@@ -332,32 +379,92 @@ class GVG_products_page {
         return $html;
     }
 
-    function report_first_product()
-    {
-        if (!count($this->matched_posts)) {
-            return;
-        }
-        $posts_key = $this->matched_posts[0];
-        $post = $this->posts[ $posts_key ];
-        $this->first_product = $post;
-        $this->display_update_form($posts_key);
-    }
-
-    function display_update_form( $posts_key ) {
-        $post = $this->posts[ $posts_key ];
+   function display_update_form( $post, $index ) {
+        //$post = $this->posts[ $posts_key ];
         //$this->first_product = $post;
         bw_form();
         stag( 'table', 'widefat');
         bw_tablerow( ['ID', $this->edit_link( $post->ID )] );
         bw_tablerow( ['Title', $post->post_title] );
+        $this->first_difference = $this->first_differences[ $index ];
+        bw_tablerow( ['Annotated', $this->annotate( $post->post_content, $this->first_difference )]);
         BW_::bw_textarea( 'post_content', 160, 'Post content', $post->post_content );
         BW_::bw_textarea( 'post_excerpt', 160, 'Post excerpt', $post->post_excerpt );
-        etag( 'table');
+        etag( 'table' );
         e( ihidden( 'ID', $post->ID ));
         e( ihidden( 'original_length', $this->get_original_length( $post )));
         e( ihidden( 'product_search', $this->product_search));
-        e( isubmit("update", "Update", null, "button-primary"));
+        e( isubmit( "update", "Update", null, "button-primary"));
+        if ( $this->all_post_contents_same() ) {
+            e( isubmit( 'bulk_update', "Bulk update", null, 'button-secondary'));
+        } else {
+            BW_::p( "Bulk update not available.");
+        }
         etag( 'form');
+    }
+
+    /**
+     * Determines if all matches are the same.
+     *
+     * Actually we need to confirm that all the post_content fields are the same!
+     *
+     *
+     * @return bool
+     */
+    function all_matches_same() {
+        $all_same = true;
+        foreach ( $this->first_differences as $index => $first_difference ) {
+            if ( 0 === $index ) {
+                $saved = $first_difference;
+            } else {
+                $all_same = $saved === $first_difference;
+            }
+
+            if ( !$all_same) {
+                echo "$index $saved $first_difference";
+                gob();
+                break;
+            }
+
+        }
+        return $all_same;
+    }
+
+    /**
+     * Checks all matched post contents are the same.
+     *
+     * For bulk update to be safe the post content of each of the matched posts needs to be identical.
+     *  - ignoring any extra blanks at the end.
+     *
+     * @return bool|null
+     */
+
+    function all_post_contents_same() {
+        $all_same = true;
+        foreach ( $this->matched_posts as $index => $posts_key ) {
+            $post = $this->posts[$posts_key];
+            if ( 0 === $index ) {
+                $saved = rtrim( $post->post_content );
+            } else {
+                $all_same = ( $saved === rtrim( $post->post_content ) );
+            }
+            if ( !$all_same) {
+                /*
+                echo "Not all the same";
+                echo PHP_EOL;
+                echo strlen( $saved );
+                echo PHP_EOL;
+                echo strlen( rtrim( $post->post_content ) );
+                echo PHP_EOL;
+                echo $post->ID;
+                echo esc_html( $post->post_content );
+                */
+                return $all_same;
+            }
+
+        }
+        return $all_same;
+
     }
 
     function get_original_length( $post ) {
@@ -395,7 +502,9 @@ class GVG_products_page {
     }
 
     function offer_buttons( $post ) {
-        if ( $this->first_difference && ( $this->first_difference < strlen( $post->post_content ) ) ) {
+        if ( $this->first_difference
+            && ( $this->first_difference < strlen( $post->post_content ) )
+            && empty( $post->post_excerpt ) ) {
             stag('tr');
             stag('td');
             bw_form();
