@@ -7,6 +7,7 @@ class GVG_Admin
         add_filter( "bw_nav_tabs_gvg_bulk_update", [ $this, "nav_tabs" ], 10, 2);
         add_action( 'gvg_nav_tab_optional_upgrades', [ $this, "nav_tab_optional_upgrades"] );
         add_action( 'gvg_nav_tab_products', [ $this, "nav_tab_products"] );
+        add_action( 'gvg_nav_tab_additions', [ $this, 'nav_tab_additions']);
                 // @TODO Convert to shared library?
         //oik_require( "includes/bw-nav-tab.php" );
         BW_::oik_menu_header( __( "GVG Bulk Update", "gvg" ), 'w100pc' );
@@ -57,6 +58,20 @@ class GVG_Admin
         $gvg_products_page->maybe_autosplit();
         BW_::oik_box( null, null, __( "Results", "gvg_bulk_update" ) , [$gvg_products_page, "products_results"] );
         BW_::oik_box( null, null, __( "Summary", 'gvg_bulk_update') , [$gvg_products_page, 'report_matches'] );
+        oik_menu_footer();
+        bw_flush();
+    }
+
+    function nav_tab_additions() {
+        $gvg_products_page = new GVG_products_page();
+
+        BW_::oik_menu_header( __( "Product Additions", "gvg_bulk_update" ), "w100pc" );
+        BW_::oik_box( null, null, __( "Form", "gvg_bulk_update" ) , [$gvg_products_page, "products_form"] );
+        //$gvg_products_page->maybe_update();
+        //$gvg_products_page->maybe_autosplit();
+        BW_::oik_box( null, null, __( "Results", 'gvg_bulk_update') , [$gvg_products_page, 'additions_results'] );
+        BW_::oik_box( null, null, __( "Summary", "gvg_bulk_update" ) , [$gvg_products_page, "additions_summary"] );
+
         oik_menu_footer();
         bw_flush();
     }

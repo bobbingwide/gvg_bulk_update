@@ -25,6 +25,7 @@ class GVG_products_page {
     private $post_excerpt;
 
     private $first_differences;
+    private $all_additions_same; // true if all additions are the same.
 
     /**
      * Constructor method.
@@ -194,6 +195,54 @@ class GVG_products_page {
         //$this->display_update_form( $post );
         $this->display_matches();
         //$this->display_update_form($posts_key);
+    }
+
+    function additions_results() {
+        if ( empty( $this->product_search )) {
+            BW_::p( "Specify a search string to list products eg. 'Halls Cotswold'");
+            return;
+        }
+        //BW_::p( "Products results");
+        $this->run_search();
+        BW_::p( "Searched: " . count( $this->posts ));
+        $this->match();
+        BW_::p("Matched: " . count( $this->matched_posts ) );
+
+        if (!count($this->matched_posts)) {
+            return;
+        }
+        $posts_key = $this->matched_posts[0];
+        $post = $this->posts[ $posts_key ];
+        $this->first_product = $post;
+
+        $this->all_additions_same = $this->all_additions_same();
+        $this->display_additions_forms();
+
+    }
+
+    function additions_summary() {
+        if ( empty( $this->product_search )) {
+            BW_::p( "Specify a search string to list products eg. 'Halls Cotswold'");
+            return;
+        }
+        //BW_::p( "Products results");
+        $this->run_search();
+        BW_::p( "Searched: " . count( $this->posts ));
+        $this->match();
+        BW_::p("Matched: " . count( $this->matched_posts ) );
+
+        if (!count($this->matched_posts)) {
+            return;
+        }
+        $posts_key = $this->matched_posts[0];
+        $post = $this->posts[ $posts_key ];
+        $this->first_product = $post;
+
+        //$this->find_first_differences();
+
+        //$this->display_update_form( $post );
+        $this->display_additions_summary();
+        //$this->display_update_form($posts_key);
 
 
 
@@ -347,6 +396,46 @@ class GVG_products_page {
 
     }
 
+    function display_additions_forms() {
+        foreach ( $this->matched_posts as $index => $posts_key ) {
+
+            //if ( $index > 0 ) {
+            $post = $this->posts[ $posts_key ];
+            //$this->first_difference = $this->first_differences[ $index ];
+            //BW_::p( $this->annotate( $post->post_content, $this->first_difference ) );
+            $this->display_additions_form( $post, $index );
+            //$this->offer_buttons( $post );
+            //}
+        }
+
+    }
+
+    function display_additions_summary() {
+        stag( 'table', 'widefat');
+        bw_tablerow( ['ID', 'Title', 'Features 1', 'Features 2'], 'tr', 'th' );
+        foreach ( $this->matched_posts as $index => $posts_key ) {
+
+            //if ( $index > 0 ) {
+            $post = $this->posts[ $posts_key ];
+            //$this->first_difference = $this->first_differences[ $index ];
+            //BW_::p( $this->annotate( $post->post_content, $this->first_difference ) );
+            $this->display_addition( $post, $index );
+            //$this->offer_buttons( $post );
+            //}
+        }
+        etag( 'table');
+
+    }
+
+    function display_addition( $post, $index ) {
+        $row = [];
+        $row[] = $this->edit_link( $post->ID );
+        $row[] = $post->post_title;
+        $row[] = get_post_meta( $post->ID, 'standard_features_1', true );
+        $row[] = get_post_meta( $post->ID, 'standard_features_2', true );
+        bw_tablerow( $row );
+    }
+
     /**
      * Formats the row showing the post content and post excerpt for each post.
      * @param $posts_key
@@ -402,6 +491,43 @@ class GVG_products_page {
         }
         etag( 'form');
     }
+
+    function display_additions_form( $post, $index ) {
+        //$post = $this->posts[ $posts_key ];
+        //$this->first_product = $post;
+        bw_form();
+        stag( 'table', 'widefat');
+        bw_tablerow( ['ID', $this->edit_link( $post->ID )] );
+        bw_tablerow( ['Title', $post->post_title] );
+        //$this->first_difference = $this->first_differences[ $index ];
+        //bw_tablerow( ['Annotated', $this->annotate( $post->post_content, $this->first_difference )]);
+        $this->display_standard_features( $post->ID, $index );
+        //BW_::bw_textarea( '', 160, 'Features 1', $post->post_content );
+        //BW_::bw_textarea( '', 160, '', $post->post_excerpt );
+        etag( 'table' );
+        e( ihidden( 'ID', $post->ID ));
+        //e( ihidden( 'original_length', $this->get_original_length( $post )));
+        e( ihidden( 'product_search', $this->product_search));
+        e( isubmit( "update_addition", "Update", null, "button-primary"));
+        if ( $this->all_additions_same ) {
+            e( isubmit( 'bulk_update_addition', "Bulk update additions", null, 'button-secondary'));
+        } else {
+            BW_::p( "Bulk update not available.");
+        }
+        etag( 'form');
+    }
+
+    function display_standard_features( $post_ID, $index ) {
+        $row = [];
+        $sf1_value = get_post_meta( $post_ID, 'standard_features_1', true );
+        $sf1 = iarea( 'standard_features_1', 80, $sf1_value );
+        $row[] = $sf1;
+        $sf2_value = get_post_meta( $post_ID, 'standard_features_2', true );
+        $sf2 = iarea( 'standard_features_2', 80, $sf2_value );
+        $row[] = $sf2;
+        bw_tablerow( $row );
+    }
+
 
     /**
      * Determines if all matches are the same.
@@ -465,6 +591,37 @@ class GVG_products_page {
         }
         return $all_same;
 
+    }
+
+    function all_additions_same() {
+        $all_same = true;
+        foreach ( $this->matched_posts as $index => $posts_key ) {
+            $post = $this->posts[$posts_key];
+            $sf1 = get_post_meta( $post->ID, 'standard_features_1', true );
+            $sf2 = get_post_meta( $post->ID, 'standard_features_2', true );
+            if ( 0 === $index ) {
+                $saved_1 = $sf1;
+                $saved_2 = $sf2;
+            } else {
+                $all_same = ( $saved_1 === $sf1 ) && ( $saved_2 === $sf2 );
+            }
+            if ( !$all_same) {
+                /*
+                echo "Not all the same";
+                echo PHP_EOL;
+                echo strlen( $saved );
+                echo PHP_EOL;
+                echo strlen( rtrim( $post->post_content ) );
+                echo PHP_EOL;
+                echo $post->ID;
+                echo esc_html( $post->post_content );
+                */
+                return $all_same;
+            }
+
+        }
+
+        return $all_same;
     }
 
     function get_original_length( $post ) {
