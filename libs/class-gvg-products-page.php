@@ -21,6 +21,8 @@ class GVG_products_page {
     private $first_product;
 
     private $post_to_update;
+    private $post_content;
+    private $post_excerpt;
 
     function __construct() {
 
@@ -94,20 +96,71 @@ class GVG_products_page {
 
         if ( $update_requested ) {
             BW_::p( "Updating post");
-            $this->perform_update();
+            $post_content = bw_array_get( $_POST, 'post_content', null );
+            $post_excerpt =  bw_array_get( $_POST, 'post_excerpt', null );
+            $this->perform_update( $post_content, $post_excerpt);
         }
     }
 
-    function perform_update() {
+    function perform_update( $post_content, $post_excerpt ) {
         $post = [];
         $post['ID'] = $this->post_to_update->ID;
-        $post_content = bw_array_get( $_POST, 'post_content', null );
+        //$post_content = bw_array_get( $_POST, 'post_content', null );
         $post_content = rtrim( $post_content);
         $post['post_content'] = $post_content;
-        $post_excerpt = bw_array_get( $_POST, 'post_excerpt', null );
+        // $post_excerpt = bw_array_get( $_POST, 'post_excerpt', null );
         $post_excerpt = rtrim( $post_excerpt );
         $post['post_excerpt'] = $post_excerpt;
         wp_update_post( $post );
+    }
+
+    function get_autosplit_request() {
+        $autosplit = bw_array_get( $_POST, "autosplit", null );
+        $ID = bw_array_get( $_POST, "ID", null );
+        $splitat = bw_array_get( $_POST, 'splitat', null );
+        $autosplit_requested = $autosplit && $ID && $splitat;
+        if ( $autosplit_requested ) {
+            $autosplit_requested = $this->validate_autosplit_request( $ID, $splitat );
+        }
+        return $autosplit_requested;
+    }
+
+    function validate_autosplit_request( $ID, $splitat ) {
+        $valid = false;
+        if ( is_numeric( $ID ) ) {
+            $post = get_post( $ID );
+            if ( $post ) {
+                if ( $post->post_type === 'product' ) {
+                    $current_length = strlen( $post->post_content );
+                    $valid = is_numeric( $splitat ) && $current_length >= (int) $splitat;
+                    if ( !$valid ) {
+                        BW_::p( "Current length $current_length split at $splitat mismatch.");
+                    }
+                } else {
+                    BW_::p( "Not a product");
+                }
+            } else {
+                BW_::p( "Post not found");
+            }
+        }
+        if ( !$valid ) {
+            BW_::p( "Invalid autosplit request for ID: $ID");
+        } else {
+            $this->post_to_update = $post;
+            $this->post_content = $this->autosplit_content( $post->post_content, $splitat );
+            $this->post_excerpt = $this->autosplit_excerpt( $post->post_content, $splitat );
+        }
+        return $valid;
+    }
+
+
+    function maybe_autosplit() {
+        $autosplit_requested  = $this->get_autosplit_request();
+
+        if ( $autosplit_requested ) {
+            BW_::p( "Splitting post");
+            $this->perform_update( $this->post_content, $this->post_excerpt );
+        }
     }
 
     function products_results() {
@@ -370,6 +423,15 @@ class GVG_products_page {
         $annotated .= $after;
 
         return $annotated ;
+    }
+
+    function autosplit_content( $post_content, $first_difference) {
+        $content = substr($post_content, 0, $first_difference);
+        return $content;
+    }
+    function autosplit_excerpt( $post_content, $first_difference ) {
+        $excerpt = substr($post_content, $first_difference);
+        return $excerpt;
     }
 
 }
