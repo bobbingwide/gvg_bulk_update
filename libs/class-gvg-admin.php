@@ -25,6 +25,7 @@ class GVG_Admin
     function nav_tabs(  $nav_tabs, $tab ) {
         $nav_tabs['optional_upgrades'] = 'Optional Upgrades';
         $nav_tabs['products'] = 'Products';
+        $nav_tabs['additions'] = 'Product Additions';
         return $nav_tabs;
     }
 
@@ -55,6 +56,7 @@ class GVG_Admin
         $gvg_products_page->maybe_update();
         $gvg_products_page->maybe_autosplit();
         BW_::oik_box( null, null, __( "Results", "gvg_bulk_update" ) , [$gvg_products_page, "products_results"] );
+        BW_::oik_box( null, null, __( "Summary", 'gvg_bulk_update') , [$gvg_products_page, 'report_matches'] );
         oik_menu_footer();
         bw_flush();
     }
