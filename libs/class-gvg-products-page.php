@@ -37,8 +37,6 @@ class GVG_products_page {
     function __construct() {
         $this->posts = [];
         $this->matched_posts = [];
-
-
     }
 
     function get_product_search() {
@@ -214,6 +212,33 @@ class GVG_products_page {
         }
     }
 
+    /**
+     *
+     * Depends on additions_results having been run.
+     *
+     */
+    function maybe_bulk_update_additions() {
+        $bulk_update_addition = bw_array_get($_POST, "bulk_update_addition", null);
+        if ( $bulk_update_addition && !empty( $this->product_search ) ) {
+            if ( $this->all_additions_same ) {
+                $this->apply_bulk_update_additions();
+            } else {
+                BW_::p( "Bulk update no longer available");
+            }
+        }
+    }
+
+    function apply_bulk_update_additions() {
+        $sf1 = bw_array_get($_POST, 'standard_features_1', null);
+        $sf2 = bw_array_get($_POST, 'standard_features_2', null);
+        foreach ( $this->matched_posts as $index => $posts_key ) {
+            $post = $this->posts[ $posts_key];
+            $this->post_to_update = $post;
+            BW_::p( "Updating Additions: " . $post->ID . ' ' . $post->post_title) ;
+            $this->perform_update_addition( $sf1, $sf2 );
+        }
+    }
+
     function perform_update_addition($sf1, $sf2) {
         update_post_meta($this->post_to_update->ID, 'standard_features_1', $sf1);
         update_post_meta($this->post_to_update->ID, 'standard_features_2', $sf2);
@@ -263,7 +288,7 @@ class GVG_products_page {
         $this->first_product = $post;
 
         $this->all_additions_same = $this->all_additions_same();
-        $this->display_additions_forms();
+       // $this->display_additions_forms();
 
     }
 
@@ -519,7 +544,7 @@ class GVG_products_page {
         //$this->first_product = $post;
         bw_form();
         stag('table', 'widefat');
-        bw_tablerow(['ID', $this->edit_link($post->ID)]);
+        bw_tablerow([ 'ID', $this->edit_link($post->ID)]);
         bw_tablerow(['Title', $post->post_title]);
         $this->first_difference = $this->first_differences[$index];
         bw_tablerow(['Annotated', $this->annotate($post->post_content, $this->first_difference)]);
@@ -543,8 +568,8 @@ class GVG_products_page {
         //$this->first_product = $post;
         bw_form();
         stag('table', 'widefat');
-        bw_tablerow(['ID', $this->edit_link($post->ID)]);
-        bw_tablerow(['Title', $post->post_title]);
+        bw_tablerow([ $post->post_title, $this->edit_link($post->ID)]);
+        //bw_tablerow(['Title', $post->post_title]);
         //$this->first_difference = $this->first_differences[ $index ];
         //bw_tablerow( ['Annotated', $this->annotate( $post->post_content, $this->first_difference )]);
         $this->display_standard_features($post->ID, $index);
@@ -649,6 +674,16 @@ class GVG_products_page {
 
     }
 
+    /**
+     * Returns a comparable version of an HTML string.
+     *
+     * - Removes leading and trailing blanks
+     * - Removes Carriage Returns; leaves Line Feeds
+     * - Converts HTML entities to characters. eg `&amp;` to `&`
+     *
+     * @param $string
+     * @return string
+     */
     function get_comparable(  $string ) {
         $string = trim($string);
         $string = str_replace("\r", "", $string);
@@ -673,7 +708,7 @@ class GVG_products_page {
                 $all_same = ($saved_1 === $sf1) && ($saved_2 === $sf2);
             }
             if (!$all_same) {
-                $this->debug_diff($saved_1, $saved_2, $sf1, $sf2, $post);
+                //$this->debug_diff($saved_1, $saved_2, $sf1, $sf2, $post);
                 return $all_same;
             }
         }
@@ -740,6 +775,15 @@ class GVG_products_page {
         return $this->find_first_string_diff( $first_content, $post_content );
     }
 
+    /**
+     * Finds the first difference between strings.
+     *
+     * Assumes that the strings are comparable.
+     *
+     * @param $first_string
+     * @param $current_string
+     * @return int|mixed|null
+     */
     function find_first_string_diff( $first_string, $current_string ) {
         $first_difference = null;
         $stopat = min( strlen( $first_string), strlen( $current_string ) );
