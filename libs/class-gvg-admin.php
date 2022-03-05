@@ -67,7 +67,7 @@ class GVG_Admin
 
         BW_::oik_menu_header( __( "Product Additions", "gvg_bulk_update" ), "w100pc" );
         BW_::oik_box( null, null, __( "Form", "gvg_bulk_update" ) , [$gvg_products_page, "products_form"] );
-        //$gvg_products_page->maybe_update();
+        $gvg_products_page->maybe_update_additions();
         //$gvg_products_page->maybe_autosplit();
         BW_::oik_box( null, null, __( "Results", 'gvg_bulk_update') , [$gvg_products_page, 'additions_results'] );
         BW_::oik_box( null, null, __( "Summary", "gvg_bulk_update" ) , [$gvg_products_page, "additions_summary"] );
