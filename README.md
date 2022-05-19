@@ -4,9 +4,9 @@
 * Donate link: https://www.oik-plugins.com/oik/oik-donate/
 * Tags: Bulk update, WooCommerce, ACF, optional upgrades
 * Requires at least: 5.7
-* Tested up to: 5.8.1
+* Tested up to: 5.9.3
 * Requires PHP: 7.3
-* Stable tag: 0.4.1
+* Stable tag: 1.0.0
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,9 @@ Bulk update of Optional upgrades for the Garden Vista Group.
 4. Bulk update processing
 
 ## Upgrade Notice 
+# 1.0.0 
+Upgrade for Bulk update of Product description and Product additions
+
 # 0.4.1 
 Upgrade to update Price per sq m and Price per percentage.
 
@@ -47,6 +50,22 @@ Prototype version for the Garden Vista Group.
 
 
 ## Changelog 
+# 1.0.0 
+* Changed: Add tests to find products with particular product options
+* Changed: Reconcile shared library files
+* Changed: Add Bulk update additions logic #13
+* Changed: Add Update additions logic. Improve difference detection and reporting #13
+* Changed: Add logic to display Product Additions #13
+* Changed: Refactor to support a bulk_update button when all matched post_content is the same #12
+* Changed: Separate Product Summary from Results #12. Start to add Product Additions tab #13
+* Changed: Implement autosplit #12
+* Changed: Display update form for each product #12
+* Changed: Enable Update for the first product listed. Improve first difference detection #12
+* Changed: Add logic to display products. Investigate if autosplit is a viable option #12
+* Changed: Create a new tab for Product updates #12
+* Tested: With WordPress 5.9.3
+* Tested: With PHP 8.0
+
 # 0.4.1 
 * Changed: Support editing price_per_sq_m and price_per_percentage #10
 
