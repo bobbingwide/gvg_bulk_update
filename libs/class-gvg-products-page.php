@@ -29,6 +29,9 @@ class GVG_products_page {
     private $saved_1; // First post's standard_features_1
     private $saved_2; // First post's standard_features_2
 
+    private $from_string;
+    private $to_string;
+
     /**
      * Constructor method.
      *
@@ -468,6 +471,7 @@ class GVG_products_page {
     }
 
     function display_additions_forms() {
+
         foreach ($this->matched_posts as $index => $posts_key) {
 
             //if ( $index > 0 ) {
@@ -840,5 +844,69 @@ class GVG_products_page {
         $excerpt = substr($post_content, $first_difference);
         return $excerpt;
     }
+
+    function display_search_and_replace() {
+        $this->get_search_replace();
+        p( 'Specify search and replace strings');
+        bw_form();
+        stag('table', 'widefat');
+        BW_::bw_textfield("from_string", 80, "Search string", $this->from_string);
+        BW_::bw_textfield("to_string", 80, "Replace string", $this->to_string);
+        etag("table");
+        e(ihidden('product_search', $this->product_search));
+        e(isubmit('search_replace', 'Search & replace', null, 'button-secondary '));
+        etag( 'form');
+    }
+
+    function get_search_replace() {
+        $from_string = bw_array_get($_POST, 'from_string', '');
+        $this->from_string = trim($from_string);
+        $to_string = bw_array_get( $_POST, 'to_string', '');
+        $this->to_string = trim( $to_string );
+    }
+
+    function maybe_search_and_replace() {
+        $this->get_search_replace();
+        $search_and_replace_requested = $this->get_search_and_replace_request();
+        if ( $search_and_replace_requested ) {
+            $this->perform_search_and_replace();
+        }
+    }
+
+    function get_search_and_replace_request() {
+        $search_and_replace = bw_array_get($_POST, "search_replace", null);
+        $search_and_replace_requested = $search_and_replace && $this->from_string && $this->to_string;
+        if ($search_and_replace_requested) {
+            //$search_and_replace_requested = $this->validate_search_and_replace_request();
+        }
+        return $search_and_replace_requested;
+    }
+
+    function perform_search_and_replace() {
+        if ( count( $this->matched_posts) ) {
+            foreach ($this->matched_posts as $index => $posts_key) {
+                $post = $this->posts[$posts_key];
+                $this->post_to_update = $post;
+                $sf1 = get_post_meta($post->ID, 'standard_features_1', true);
+                $sf2 = get_post_meta($post->ID, 'standard_features_2', true);
+
+                $rf1 = str_replace( $this->from_string, $this->to_string, $sf1 );
+                $rf2 = str_replace( $this->from_string, $this->to_string, $sf2 );
+
+                if ( $sf1 <> $rf1 || $sf2 <> $rf2 ) {
+                    BW_::p( "Updating Additions: " . $post->ID . ' ' . $post->post_title);
+                    $this->perform_update_addition( $rf1, $rf2 );
+                } else {
+                    BW_::p( "No change for: " . $post->ID . ' ' . $post->post_title) ;
+                }
+                
+            }
+        } else {
+            p( "No matched posts to change");
+        }
+
+
+    }
+
 
 }

@@ -4,14 +4,14 @@
 * Donate link: https://www.oik-plugins.com/oik/oik-donate/
 * Tags: Bulk update, WooCommerce, ACF, optional upgrades
 * Requires at least: 5.7
-* Tested up to: 5.9.3
+* Tested up to: 6.1.1
 * Requires PHP: 7.3
-* Stable tag: 1.0.0
+* Stable tag: 1.1.0
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 ## Description 
-Bulk update of Optional upgrades for the Garden Vista Group.
+Bulk update of Optional upgrades, Product descriptions and Product Additions for the Garden Vista Group.
 
 
 ## Installation 
@@ -27,6 +27,9 @@ Bulk update of Optional upgrades for the Garden Vista Group.
 4. Bulk update processing
 
 ## Upgrade Notice 
+# 1.1.0 
+Upgrade for simple search and replace on Product Additions
+
 # 1.0.0 
 Upgrade for Bulk update of Product description and Product additions
 
@@ -50,6 +53,9 @@ Prototype version for the Garden Vista Group.
 
 
 ## Changelog 
+# 1.1.0 
+* Changed: Added search and replace on Product Additions #15
+
 # 1.0.0 
 * Changed: Add tests to find products with particular product options
 * Changed: Reconcile shared library files
