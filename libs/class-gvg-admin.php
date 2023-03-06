@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @copyright (C) Copyright Bobbing Wide 2021-2023
+ * @package gvg_bulk_update
+ */
+
 class GVG_Admin
 {
 
@@ -8,6 +13,7 @@ class GVG_Admin
         add_action( 'gvg_nav_tab_optional_upgrades', [ $this, "nav_tab_optional_upgrades"] );
         add_action( 'gvg_nav_tab_products', [ $this, "nav_tab_products"] );
         add_action( 'gvg_nav_tab_additions', [ $this, 'nav_tab_additions']);
+        add_action( 'gvg_nav_tab_sales', [ $this, 'nav_tab_sales']);
                 // @TODO Convert to shared library?
         //oik_require( "includes/bw-nav-tab.php" );
         BW_::oik_menu_header( __( "GVG Bulk Update", "gvg" ), 'w100pc' );
@@ -27,6 +33,7 @@ class GVG_Admin
         $nav_tabs['optional_upgrades'] = 'Optional Upgrades';
         $nav_tabs['products'] = 'Products';
         $nav_tabs['additions'] = 'Product Additions';
+        $nav_tabs['sales'] = 'Product Sales';
         return $nav_tabs;
     }
 
@@ -78,6 +85,31 @@ class GVG_Admin
 
         oik_menu_footer();
         bw_flush();
+    }
+
+    function nav_tab_sales() {
+        $gvg_sales_page = new GVG_sales_page();
+        BW_::oik_menu_header( __( "Product Sales", "gvg_bulk_update" ), "w100pc" );
+
+        BW_::oik_box( null, null, __( "Brand selection", "gvg_bulk_update" ) , [$gvg_sales_page, "brand_selection_form"] );
+
+
+        if ( $gvg_sales_page->get_brand_selection() ) {
+            if ( $gvg_sales_page->load_products_for_brand() ) {
+                BW_::oik_box(null, null, __("Discount form", "gvg_bulk_update"), [$gvg_sales_page, "discount_form"]);
+                //$gvg_sales_page->update_products_for_brand();
+
+                BW_::oik_box( null, null, __( "Results", 'gvg_bulk_update') , [$gvg_sales_page, 'update_products_for_brand'] );
+                $gvg_sales_page->load_products_for_brand();
+                BW_::oik_box( null, null, __( "Summary", "gvg_bulk_update" ) , [$gvg_sales_page, "display_sales_summary"] );
+            }
+        }
+
+
+
+        oik_menu_footer();
+        bw_flush();
+
     }
 
 }
