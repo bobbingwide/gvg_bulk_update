@@ -73,8 +73,8 @@ class GVG_sales_page
             return false;
         }
         $this->index_to++;
-        p( "Processed to: " . $this->index_to );
-        p( "Total:" . count( $this->posts ));
+        e( "Processed to: " . $this->index_to );
+        e( " of: " . count( $this->posts ));
         $more_to_do = $this->index_to < count( $this->posts );
         return $more_to_do;
     }
@@ -246,9 +246,9 @@ class GVG_sales_page
 
     function display_sales_summary() {
 
-        p(count($this->posts));
+        p("Products: " . count($this->posts));
         stag('table', "widefat");
-        bw_tablerow( bw_as_array('ID,Title,Price,Sale,Calculated-discount,Start-date,End-date'), 'tr', 'th');
+        bw_tablerow( bw_as_array('ID,Title,Price,Sale,Discount,Percentage,Start-date,End-date'), 'tr', 'th');
 
         foreach ($this->posts as $post) {
 
@@ -264,6 +264,7 @@ class GVG_sales_page
              * Product may be scheduled to be on sale. So no point testing is_on_sale() ?
              */
             $row[] = $this->format_discount( $regular_price, $sale_price);
+            $row[] = $this->format_percentage( $regular_price, $sale_price);
             if ( $product->get_date_on_sale_from() ) {
                 $row[] = ($product->get_date_on_sale_from())->date( 'Y-m-d');
             } else {
@@ -291,14 +292,21 @@ class GVG_sales_page
             return $calculated;
         // Assume get_discount() has been run.
         $calculated = $regular_price - $sale_price;
-        if ($this->is_percentage) {
-          $calculated = ( $calculated * 100 ) / $regular_price;
-          $calculated = round( $calculated, 2);
-          $calculated.= '%';
-        }
+        $calculated = round( $calculated, 2 );
         return $calculated;
+    }
 
-
+    function format_percentage( $regular_price, $sale_price ) {
+        $calculated = '';
+        //bw_trace2();
+        if ( null === $sale_price || '' === trim( $sale_price ) )
+            return $calculated;
+        // Assume get_discount() has been run.
+        $calculated = $regular_price - $sale_price;
+        $calculated = ( $calculated * 100 ) / $regular_price;
+        $calculated = round( $calculated, 2);
+        $calculated.= '%';
+        return $calculated;
     }
 
     /**
@@ -348,7 +356,7 @@ class GVG_sales_page
             }
             $posts = get_posts( $args );
             $this->posts = $posts;
-            p( "Posts: " . count( $posts ));
+            p( "Products: " . count( $posts ));
 
 
         }
