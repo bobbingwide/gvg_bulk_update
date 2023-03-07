@@ -96,15 +96,14 @@ class GVG_Admin
 
         if ( $gvg_sales_page->get_brand_selection() ) {
             if ( $gvg_sales_page->load_products_for_brand() ) {
-                BW_::oik_box(null, null, __("Discount form", "gvg_bulk_update"), [$gvg_sales_page, "discount_form"]);
-                //$gvg_sales_page->update_products_for_brand();
-
 
                 $apply_discount = bw_array_get($_POST, "apply_discount", null);
                 if ( null !== $apply_discount ) {
                     BW_::oik_box(null, null, __("Results", 'gvg_bulk_update'), [$gvg_sales_page, 'update_products_for_brand']);
                     $gvg_sales_page->load_products_for_brand();
                 }
+                BW_::oik_box(null, null, __("Discount form", "gvg_bulk_update"), [$gvg_sales_page, "discount_form"]);
+                //$gvg_sales_page->update_products_for_brand();
                 BW_::oik_box( null, null, __( "Summary", "gvg_bulk_update" ) , [$gvg_sales_page, "display_sales_summary"] );
             }
         }
