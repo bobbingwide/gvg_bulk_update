@@ -178,11 +178,11 @@ class GVG_sales_page
     }
 
     function brand_selection_list() {
-        $brand_options = [];
+        $brand_options = [ 0 => "None"];
         $args = [ 'post_type' => 'brands', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'asc' ];
         $brands = get_posts( $args );
         foreach ( $brands as $brand ) {
-            $brand_options[ $brand->ID] = $brand->post_title;
+            $brand_options[ $brand->ID ] = $brand->post_title;
         }
        return $brand_options;
 
@@ -230,9 +230,10 @@ class GVG_sales_page
 
     function apply_discount( $regular_price ) {
         $discount = $this->discount;
+        //bw_trace2( $discount, "discount");
         $is_percentage = $this->is_percentage;
         $sale_price = null;
-        if ( $discount) {
+        if ( $discount > 0 ) {
             if ( $is_percentage ) {
                 $sale_price = ( $regular_price * ( 100 - $discount ) ) / 100;
             } else {
@@ -285,13 +286,14 @@ class GVG_sales_page
 
     function format_discount( $regular_price, $sale_price ) {
         $calculated = '';
-        bw_trace2();
+        //bw_trace2();
         if ( null === $sale_price || '' === trim( $sale_price ) )
             return $calculated;
         // Assume get_discount() has been run.
         $calculated = $regular_price - $sale_price;
         if ($this->is_percentage) {
           $calculated = ( $calculated * 100 ) / $regular_price;
+          $calculated = round( $calculated, 2);
           $calculated.= '%';
         }
         return $calculated;
@@ -324,17 +326,29 @@ class GVG_sales_page
      * @return void
      */
     function load_products_for_brand() {
+
         if ( '' !== $this->brand_selection ) {
             //p( "Brand: ". $this->brand_selection);
 
             $args = [ 'post_type' => 'product',
-                'meta_query' => [ ['key' => 'brand', 'value' => '"' . $this->brand_selection . '"', 'compare' => 'LIKE'] ],
-                'numberposts' => -1,
-                'orderby' => 'title',
-                'order' => 'ASC' ];
+                      'numberposts' => -1,
+                      'orderby' => 'title',
+                      'order' => 'ASC' ];
+
+            /**
+             * If the Brand selection is None we find products where the brand has not been set.
+             * Note: when the meta_value is not set it contains a single blank.
+             */
+            if ( '0' === $this->brand_selection) {
+                $args['meta_key'] = 'brand';
+                $args['meta_value'] = ' ';
+                $args['meta_compare'] = '=';
+            } else {
+                $args['meta_query'] = [['key' => 'brand', 'value' => '"' . $this->brand_selection . '"', 'compare' => 'LIKE']];
+            }
             $posts = get_posts( $args );
             $this->posts = $posts;
-            //p( count( $posts ));
+            p( "Posts: " . count( $posts ));
 
 
         }
