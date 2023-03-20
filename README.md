@@ -6,12 +6,12 @@
 * Requires at least: 5.7
 * Tested up to: 6.2
 * Requires PHP: 7.3
-* Stable tag: 1.2.0
+* Stable tag: 1.3.0
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 ## Description 
-Bulk update of Optional upgrades, Product descriptions and Product Additions for the Garden Vista Group.
+Bulk update of Optional upgrades, Product descriptions, Product Additions and Product Sales for the Garden Vista Group.
 
 
 ## Installation 
@@ -27,13 +27,12 @@ Bulk update of Optional upgrades, Product descriptions and Product Additions for
 4. Bulk update processing
 
 ## Upgrade Notice 
-# 1.2.0 
-Upgrade for Product Sales page
-
+# 1.3.0 
+Upgrade for Product Sales page - with automatic refresh for updates
 
 ## Changelog 
-# 1.2.0 
-* Changed: Added Product Sales tab for 1-click price change promotions #16
+# 1.3.0 
+* Changed: Fully implement 1-click discount using JavaScript to automatically submit the request. 20 items per request #16
 * Tested: With PHP 8.0
 * Tested: With WordPress 6.2
 

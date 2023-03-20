@@ -17,7 +17,7 @@ class GVG_sales_page
     private $offset;  // Start index for processing posts
     private $index_from;  // basically the same as offset
     private $index_to;
-    private $to_process = 10;
+    private $to_process = 20;
 
     function __construct() {
         $this->posts = [];

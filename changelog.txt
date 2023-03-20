@@ -1,4 +1,7 @@
 == Upgrade Notice ==
+= 1.2.0 =
+Upgrade for Product Sales page
+
 = 1.1.0 =
 Upgrade for simple search and replace on Product Additions
 
@@ -23,8 +26,12 @@ Upgrade for improved performance through cacheing.
 = 0.0.0 = 
 Prototype version for the Garden Vista Group.
 
-
 == Changelog ==
+= 1.2.0 =
+* Changed: Added Product Sales tab for 1-click price change promotions #16
+* Tested: With PHP 8.0
+* Tested: With WordPress 6.2
+
 = 1.1.0 =
 * Changed: Added search and replace on Product Additions #15
 
