@@ -17,7 +17,7 @@ class GVG_sales_page
     private $offset;  // Start index for processing posts
     private $index_from;  // basically the same as offset
     private $index_to;
-    private $to_process = 50;
+    private $to_process = 10;
 
     function __construct() {
         $this->posts = [];
@@ -54,30 +54,60 @@ class GVG_sales_page
 
     function discount_form() {
         $this->get_form_fields();
+		$this->increment_report_progress();
         if ( $this->more_to_do() ) {
             $this->continue_applying_form();
         } else {
             $this->apply_discount_form();
         }
+		if ( $this->all_done() ) {
+			$this->redisplay_brand_selection();
+		}
     }
+
+	/**
+	 * Increment and report progress.
+	 *
+	 * This is only done when we're applying updates.
+	 */
+	function increment_report_progress() {
+		if ( null === $this->index_from ) {
+			return false;
+		}
+		$this->index_to ++;
+		e( "Processed to: " . $this->index_to );
+		e( " of: " . count( $this->posts ) );
+	}
 
     /**
      * Determines which form to display.
      *
      * @return bool
      */
-
     function more_to_do( ) {
 
         if ( null === $this->index_from ) {
             return false;
         }
-        $this->index_to++;
-        e( "Processed to: " . $this->index_to );
-        e( " of: " . count( $this->posts ));
+
         $more_to_do = $this->index_to < count( $this->posts );
         return $more_to_do;
     }
+
+	/**
+	 * Determines if updates are complete.
+	 *
+	 * If we're doing updates and they're complete we need
+	 * to refresh the display to the Brand selection list.
+	 * This resets the query parameters.
+	 * @return bool
+	 */
+	function all_done() {
+		if ( null === $this->index_from ) {
+			return false;
+		}
+		return $this->index_to === count( $this->posts );
+	}
 
     function apply_discount_form() {
         bw_form();
@@ -113,8 +143,55 @@ class GVG_sales_page
         e( ihidden( 'offset', $this->index_to ));
         e(isubmit("apply_discount", "Continue processing", null, "button-primary"));
         etag('form');
+		$this->automatic_refresh( $this->continue_processing_url() );
 
     }
+
+	function redisplay_brand_selection() {
+		$url = admin_url( "tools.php" );
+		$args = [ 'page' => 'gvg_bulk_update',
+		          'tab' => 'sales',
+		          'brand_selection'=> $this->brand_selection
+		         ];
+		$url = add_query_arg( $args, $url );
+		$this->automatic_refresh( $url );
+	}
+
+	/**
+	 * Generates JavaScript to automatically refresh the display.
+	 *
+	 * @return void
+	 */
+	function automatic_refresh( $url) {
+		e( 'If your browser does not start loading the next page automatically, click the button', 'gvg_bulk_update' );
+		//bw_flush();
+		echo '<script type="text/javascript">' ;
+        //echo '<!--' ;
+        echo 'function nextpage() {' ;
+		//echo ' alert( "Timeout" );';
+		//echo ' alert( "' . $url . '");';
+        echo '   location.href = "' . $url . '"'  ;
+        echo '}' ;
+        echo 'setTimeout( "nextpage()", 250 );' ;
+        //echo '//-->' ;
+		echo '</script>' ;
+		//exit();
+	}
+
+	function continue_processing_url() {
+		$url = admin_url( "tools.php" );
+		$args = [ 'page' => 'gvg_bulk_update',
+			'tab' => 'sales',
+			'discount'=> $this->discount_display(),
+            'start_date'=> $this->start_date ,
+            'end_date'=> $this->end_date ,
+            'brand_selection'=> $this->brand_selection ,
+            'offset'=> $this->index_to ,
+            'apply_discount'=> "Continue processing"];
+
+		$url = add_query_arg( $args, $url );
+		return $url;
+	}
 
     function get_brand_name() {
         $brand_name = $this->brand_selection_list[ $this->brand_selection] ;
@@ -122,7 +199,7 @@ class GVG_sales_page
     }
 
     function get_brand_selection() {
-        $brand_selection = bw_array_get($_POST, 'brand_selection', '');
+        $brand_selection = bw_array_get($_REQUEST, 'brand_selection', '');
         $this->brand_selection = trim($brand_selection);
         return $this->brand_selection;
     }
@@ -136,7 +213,7 @@ class GVG_sales_page
     }
 
     function get_discount() {
-        $discount = bw_array_get($_POST, 'discount', '0%');
+        $discount = bw_array_get($_REQUEST, 'discount', '0%');
         if ( false !== strpos( $discount, '%' ) ) {
             $this->is_percentage = true;
             $discount = str_replace( '%', '', $discount );
@@ -147,17 +224,17 @@ class GVG_sales_page
     }
 
     function get_start_date() {
-        $start_date = bw_array_get($_POST, 'start_date', null);
+        $start_date = bw_array_get($_REQUEST, 'start_date', null);
         $this->start_date = $this->asYMD( $start_date );
     }
 
     function get_end_date() {
-        $end_date = bw_array_get($_POST, 'end_date', null);
+        $end_date = bw_array_get($_REQUEST, 'end_date', null);
         $this->end_date = $this->asYMD( $end_date );
     }
 
     function get_offset() {
-        $offset = bw_array_get( $_POST, 'offset', 0 );
+        $offset = bw_array_get( $_REQUEST, 'offset', 0 );
         if ( is_numeric( $offset )) {
             $this->offset = $offset;
         }
@@ -189,7 +266,7 @@ class GVG_sales_page
     }
 
     function update_products_for_brand() {
-        $apply_discount = bw_array_get($_POST, "apply_discount", null);
+        $apply_discount = bw_array_get($_REQUEST, "apply_discount", null);
         if ( null !== $apply_discount ) {
             $this->get_form_fields();
             $this->set_range();
