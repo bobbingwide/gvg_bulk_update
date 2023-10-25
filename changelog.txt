@@ -1,4 +1,7 @@
 == Upgrade Notice ==
+= 1.3.0 =
+Upgrade for Product Sales page - with automatic refresh for updates
+
 = 1.2.0 =
 Upgrade for Product Sales page
 
@@ -27,6 +30,11 @@ Upgrade for improved performance through cacheing.
 Prototype version for the Garden Vista Group.
 
 == Changelog ==
+= 1.3.0 =
+* Changed: Fully implement 1-click discount using JavaScript to automatically submit the request. 20 items per request #16
+* Tested: With PHP 8.0
+* Tested: With WordPress 6.2
+
 = 1.2.0 =
 * Changed: Added Product Sales tab for 1-click price change promotions #16
 * Tested: With PHP 8.0
