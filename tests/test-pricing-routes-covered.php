@@ -1,4 +1,4 @@
-<?php // (C) Copyright Bobbing Wide 2022
+<?php // (C) Copyright Bobbing Wide 2022, 2023
 /**
  * @group gvg_bulk_update
  */
@@ -70,12 +70,19 @@ class Tests_pricing_routes_covered extends BW_UnitTestCase {
     /**
      * When we don't know we have to search the products.
      * It would be best if all the products were published.
+     *
+     * It turns out that multi-square and multi-percent aren't used for real.
+     * So I added a new product with these options.
+     * In the copy of gvglive the post is 9565.
+     * In my previous db it was 7982.
+     *
      */
     function test_for_multi_squared() {
-        $this->fetch_products();
+        //$this->fetch_products();
+        $this->fetch_product( 9565 );
         $ID = $this->find_first_post_with( $this->posts, 'multi', 'squared' );
-        $this->assertEquals( 1, $ID, "multi-squared" );
-        echo "This has failed";
+        $this->assertEquals( 9565, $ID, "multi-squared" );
+        //echo "This has failed";
     }
 
     /**
@@ -89,10 +96,11 @@ class Tests_pricing_routes_covered extends BW_UnitTestCase {
     }
 
     function test_for_multi_percent() {
-        $this->fetch_products();
+        //$this->fetch_products();
+        $this->fetch_product( 9565 );
         $ID = $this->find_first_post_with( $this->posts, 'multi', 'percent' );
-        $this->assertEquals( 1, $ID, "multi-percent" );
-        echo "This has failed";
+        $this->assertEquals( 9565, $ID, "multi-percent" );
+        //echo "This has failed";
     }
 
     function find_first_post_with( $posts, $single_choice_or_multi_choice, $pricing_route ) {
@@ -131,8 +139,8 @@ class Tests_pricing_routes_covered extends BW_UnitTestCase {
         $matches = array_intersect( $choices, $pricing_routes);
         $found = count( $matches) > 0;
         if ( $found ) {
-            echo "Post ID:" . $post->ID;
-            print_r($matches);
+            //echo "Post ID:" . $post->ID;
+            //print_r($matches);
         }
 
         //print_r( $post_meta );
