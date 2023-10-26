@@ -2,7 +2,7 @@
 /**
  * @class gvg_bulk_update_page to bulk update optional upgrade fields
  * @package gvg_bulk_update
- * @copyright (C) Copyright Bobbing Wide 2021
+ * @copyright (C) Copyright Bobbing Wide 2021, 2023
  *
  */
 
@@ -37,17 +37,12 @@ class gvg_bulk_update_page
 
         //$this->set_memory_limit();
         if ( $this->check_for_reload() ) {
-            $this->option_names = false;
-        } else {
-            $this->load_from_options();
-        }
-        if ( false === $this->option_names ) {
             $this->build_product_option_map();
             $this->sort_option_names();
             $this->save_as_options();
+        } else {
+            $this->load_from_options();
         }
-
-
 
     }
 
