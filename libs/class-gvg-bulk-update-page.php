@@ -295,17 +295,10 @@ class gvg_bulk_update_page
                 $row[] = $this->option_names_map[$post->ID];
             } else {
             	$row[] = "Please Reload option list cache";
-
             }
-            //$row[] = count($this->available_options_map[$post->ID]);
-
             bw_tablerow($row);
-            //bw_tablerow( [ $edit_link, , $post_meta, implode( '<br />', array_keys( $available_options )), $option_names ] );
-
         }
         etag('table');
-
-
     }
 
     /**
