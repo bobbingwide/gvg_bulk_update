@@ -5,7 +5,7 @@ Tags: Bulk update, WooCommerce, ACF, optional upgrades
 Requires at least: 5.7
 Tested up to: 6.4-RC2
 Requires PHP: 7.3
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,15 +26,15 @@ Bulk update of Optional upgrades, Product descriptions, Product Additions and Pr
 4. Bulk update processing
  
 == Upgrade Notice ==
-= 1.3.1 =
-Upgrade for support for PHP 8.1 and PHP 8.2
+= 1.3.2 =
+Upgrade for better handling when new products added #11
 
 == Changelog ==
-= 1.3.1 =
-* Changed: Update PHPUnit tests to run OK #9
-* Changed: Update shared libraries for PHP 8.1 and PHP 8.2 #17
+= 1.3.2 =
+* Fixed: Detect when Reload option list cache is required #11
+* Fixed: Avoid automatic conversion of false to array. #17
 * Tested: With PHP 8.0, PHP 8.1 and PHP 8.2
-* Tested: With WordPress 6.4-RC3
+* Tested: With WordPress 6.4-RC2
 
 == Further reading ==
 GVG Bulk update uses oik shared libraries in the _GVG Bulk update_ admin page
