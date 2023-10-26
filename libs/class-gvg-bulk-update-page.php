@@ -63,6 +63,7 @@ class gvg_bulk_update_page
         e( isubmit( 'gvg_reload', 'Reload option list cache', null, 'button-secondary'));
 
         etag("form");
+        $this->check_if_reload_required();
 
     }
 
@@ -288,9 +289,16 @@ class gvg_bulk_update_page
             $row = [];
             $row[] = $edit_link = $this->gvg_edit_link($post->ID);
             $row[] = $post->post_title;
-            $row[] = count($this->available_options_map[$post->ID]);
-            $row[] = implode('<br />', $this->available_titles_map[$post->ID]);
-            $row[] = $this->option_names_map[$post->ID];
+            if ( isset( $this->available_options_map[$post->ID] ) ) {
+                $row[] = count($this->available_options_map[$post->ID]);
+                $row[] = implode('<br />', $this->available_titles_map[$post->ID]);
+                $row[] = $this->option_names_map[$post->ID];
+            } else {
+            	$row[] = "Please Reload option list cache";
+
+            }
+            //$row[] = count($this->available_options_map[$post->ID]);
+
             bw_tablerow($row);
             //bw_tablerow( [ $edit_link, , $post_meta, implode( '<br />', array_keys( $available_options )), $option_names ] );
 
@@ -765,6 +773,22 @@ class gvg_bulk_update_page
         $ser = serialize( $option);
         p( "$option_name:" . strlen( $ser ));
         update_option( $option_name, $option, $autoload );
+    }
+
+    function check_if_reload_required() {
+        if ( count( $this->available_options_map ) !==count( $this->posts)) {
+            p( "Reload option list cache required for new products:" );
+            foreach ( $this->posts as $post ) {
+                if ( !isset( $this->available_options_map[$post->ID] ) ) {
+                    br( $post->ID);
+                    e(' ');
+                    e( $post->post_title);
+                }
+            }
+        } else {
+            //p( "Reload not required" );
+        }
+
     }
 
 }
