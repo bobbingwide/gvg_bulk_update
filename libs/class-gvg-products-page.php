@@ -24,6 +24,7 @@ class GVG_products_page {
     private $post_content;
     private $post_excerpt;
 
+	private $first_difference;
     private $first_differences;
     private $all_additions_same; // true if all additions are the same.
     private $saved_1; // First post's standard_features_1
