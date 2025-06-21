@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @copyright (C) Copyright Bobbing Wide 2021-2023
+ * @copyright (C) Copyright Bobbing Wide 2021-2025
  * @package gvg_bulk_update
  */
 
@@ -14,6 +14,8 @@ class GVG_Admin
         add_action( 'gvg_nav_tab_products', [ $this, "nav_tab_products"] );
         add_action( 'gvg_nav_tab_additions', [ $this, 'nav_tab_additions']);
         add_action( 'gvg_nav_tab_sales', [ $this, 'nav_tab_sales']);
+        // Logic to replace the highly insecure copy-fh79y739yq3.php routine.
+        add_action( 'gvg_nav_tab_copy_optional_upgrades', [$this, 'nav_tab_copy_optional_upgrades']);
                 // @TODO Convert to shared library?
         //oik_require( "includes/bw-nav-tab.php" );
         BW_::oik_menu_header( __( "GVG Bulk Update", "gvg" ), 'w100pc' );
@@ -34,6 +36,7 @@ class GVG_Admin
         $nav_tabs['products'] = 'Products';
         $nav_tabs['additions'] = 'Product Additions';
         $nav_tabs['sales'] = 'Product Sales';
+        $nav_tabs['copy_optional_upgrades'] = 'Copy Optional Upgrades';
         return $nav_tabs;
     }
 
@@ -115,6 +118,14 @@ class GVG_Admin
         oik_menu_footer();
         bw_flush();
 
+    }
+
+    function nav_tab_copy_optional_upgrades() {
+        $gvg_copy_optional_upgrades = new GVG_copy_optional_upgrades();
+        BW_::oik_menu_header( __( "Copy Optional Upgrades", "gvg_bulk_update" ), "w100pc" );
+        BW_::oik_box( null, null, __( "Form", "gvg_bulk_update" ) , [$gvg_copy_optional_upgrades, "source_selection_form"] );
+        oik_menu_footer();
+        bw_flush();
     }
 
 }
