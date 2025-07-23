@@ -1,4 +1,7 @@
 == Upgrade Notice ==
+= 1.5.0 =
+Upgrade for Copy Optional Upgrades tab
+
 = 1.4.0 =
 Upgrade for improved performance with AIOSEO 
 
@@ -39,6 +42,12 @@ Upgrade for improved performance through cacheing.
 Prototype version for the Garden Vista Group.
 
 == Changelog ==
+= 1.5.0 =
+* Added: Add Copy Optional Upgrades tab #20
+* Changed: Reconcile bobbfunc shared library
+* Tested: With PHP 8.3
+* Tested: With WordPress 6.8.1
+
 = 1.4.0 =
 * Changed: Support PHP 8.3 #19
 * Changed: Performance fix: Add logic to check a tried_classes array #18

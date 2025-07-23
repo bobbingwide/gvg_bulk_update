@@ -4,9 +4,9 @@
 * Donate link: https://www.oik-plugins.com/oik/oik-donate/
 * Tags: Bulk update, WooCommerce, ACF, optional upgrades
 * Requires at least: 5.7
-* Tested up to: 6.8.1
+* Tested up to: 6.8.2
 * Requires PHP: 7.3
-* Stable tag: 1.5.0
+* Stable tag: 1.5.1
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,15 +25,14 @@ Bulk update of Optional upgrades, Product descriptions, Product Additions, Produ
 4. Bulk update processing
 
 ## Upgrade Notice 
-# 1.5.0 
+# 1.5.1 
 Upgrade for Copy Optional Upgrades tab
 
 ## Changelog 
-# 1.5.0 
-* Added: Add Copy Optional Upgrades tab #20
-* Changed: Reconcile bobbfunc shared library
+# 1.5.1 
+* Added: Search and Replace to Products tab #22
 * Tested: With PHP 8.3
-* Tested: With WordPress 6.8.1
+* Tested: With WordPress 6.8.2
 
 ## Further reading 
 GVG Bulk update uses oik shared libraries in the _GVG Bulk update_ admin page
