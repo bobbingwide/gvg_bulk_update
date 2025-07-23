@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @copyright (C) Copyright Bobbing Wide 2022
+ * @copyright (C) Copyright Bobbing Wide 2022, 2025
  * GVG_products_page to bulk update:
  * - Product description ( post_content )
  * - Product short description  ( post_excerpt )
@@ -248,7 +248,8 @@ class GVG_products_page {
         update_post_meta($this->post_to_update->ID, 'standard_features_2', $sf2);
     }
 
-    function products_results() {
+
+    function get_products_results() {
         if (empty($this->product_search)) {
             BW_::p("Specify a search string to list products eg. 'Halls Cotswold'");
             return;
@@ -258,6 +259,10 @@ class GVG_products_page {
         BW_::p("Searched: " . count($this->posts));
         $this->match();
         BW_::p("Matched: " . count($this->matched_posts));
+
+    }
+
+    function products_results() {
 
         if (!count($this->matched_posts)) {
             return;
@@ -852,18 +857,26 @@ class GVG_products_page {
         bw_form();
         stag('table', 'widefat');
         BW_::bw_textfield("from_string", 80, "Search string", $this->from_string);
-        BW_::bw_textfield("to_string", 80, "Replace string", $this->to_string);
+        //BW_::bw_textfield("to_string", 80, "Replace string", $this->to_string);
+        BW_::bw_textarea( 'to_string', 80, 'Replace string', $this->to_string );
         etag("table");
         e(ihidden('product_search', $this->product_search));
         e(isubmit('search_replace', 'Search & replace', null, 'button-secondary '));
         etag( 'form');
     }
 
+    function display_search_and_replace_description() {
+        $this->display_search_and_replace();
+        p( "Leave the Search string blank to append content.");
+        p( "Use HTML tags as required.");
+        p( "Replacing changes all occurrences of the Search string to Replace string." );
+    }
+
     function get_search_replace() {
         $from_string = bw_array_get($_POST, 'from_string', '');
-        $this->from_string = trim($from_string);
+        $this->from_string = stripslashes( trim($from_string) );
         $to_string = bw_array_get( $_POST, 'to_string', '');
-        $this->to_string = trim( $to_string );
+        $this->to_string = stripslashes( trim( $to_string ) );
     }
 
     function maybe_search_and_replace() {
@@ -874,6 +887,18 @@ class GVG_products_page {
         }
     }
 
+    function maybe_search_and_replace_description() {
+        $this->get_search_replace();
+        $search_and_replace_requested = $this->get_search_and_replace_description_request();
+        if ( $search_and_replace_requested ) {
+            $this->perform_search_and_replace_description();
+        }
+    }
+
+    /**
+     * Determines if search and replace for standard features should be performed.
+     * @return bool
+     */
     function get_search_and_replace_request() {
         $search_and_replace = bw_array_get($_POST, "search_replace", null);
         $search_and_replace_requested = $search_and_replace && $this->from_string && $this->to_string;
@@ -883,31 +908,79 @@ class GVG_products_page {
         return $search_and_replace_requested;
     }
 
+    /**
+     * Determines if search and replace for description should be performed.
+     * @return bool
+     */
+    function get_search_and_replace_description_request() {
+        $search_and_replace = bw_array_get($_POST, "search_replace", null);
+        $search_and_replace_requested = $search_and_replace && $this->to_string;
+        if ($search_and_replace_requested) {
+            //$search_and_replace_requested = $this->validate_search_and_replace_request();
+        }
+        return $search_and_replace_requested;
+    }
+    /**
+     * Performs search and replace in standard features.
+     *
+     * standard_features_1 and standard_features_2
+     * @return void
+     */
     function perform_search_and_replace() {
-        if ( count( $this->matched_posts) ) {
+        if (count($this->matched_posts)) {
             foreach ($this->matched_posts as $index => $posts_key) {
                 $post = $this->posts[$posts_key];
                 $this->post_to_update = $post;
                 $sf1 = get_post_meta($post->ID, 'standard_features_1', true);
                 $sf2 = get_post_meta($post->ID, 'standard_features_2', true);
 
-                $rf1 = str_replace( $this->from_string, $this->to_string, $sf1 );
-                $rf2 = str_replace( $this->from_string, $this->to_string, $sf2 );
+                $rf1 = str_replace($this->from_string, $this->to_string, $sf1);
+                $rf2 = str_replace($this->from_string, $this->to_string, $sf2);
 
-                if ( $sf1 <> $rf1 || $sf2 <> $rf2 ) {
-                    BW_::p( "Updating Additions: " . $post->ID . ' ' . $post->post_title);
-                    $this->perform_update_addition( $rf1, $rf2 );
+                if ($sf1 <> $rf1 || $sf2 <> $rf2) {
+                    BW_::p("Updating Additions: " . $post->ID . ' ' . $post->post_title);
+                    $this->perform_update_addition($rf1, $rf2);
+                } else {
+                    BW_::p("No change for: " . $post->ID . ' ' . $post->post_title);
+                }
+
+            }
+        } else {
+            p("No matched posts to change");
+        }
+    }
+
+    /**
+     * Performs search and replace in post content
+     */
+    function perform_search_and_replace_description() {
+        if ( count( $this->matched_posts) ) {
+            foreach ($this->matched_posts as $index => $posts_key) {
+                $post = $this->posts[$posts_key];
+                $this->post_to_update = $post;
+                if ( $this->from_string ) {
+                    /** Replacing string */
+                    $updated_content = str_replace( $this->from_string, $this->to_string, $post->post_content  );
+                    $action = 'replacing';
+                } else {
+                    $action = 'appending';
+                    $updated_content = $post->post_content . $this->to_string;
+                }
+
+                if ( $updated_content != $post->post_content ) {
+                    BW_::p( "Updating content by " . $action. ': ' . $post->ID . ' ' . $post->post_title);
+                    // Update the post then the cached post's content.
+                    $this->perform_update( $updated_content, $post->post_excerpt );
+                    $this->posts[$posts_key]->post_content = $updated_content;
+
                 } else {
                     BW_::p( "No change for: " . $post->ID . ' ' . $post->post_title) ;
                 }
-                
             }
         } else {
             p( "No matched posts to change");
         }
 
-
     }
-
 
 }

@@ -66,6 +66,9 @@ class GVG_Admin
         BW_::oik_box( null, null, __( "Form", "gvg_bulk_update" ) , [$gvg_products_page, "products_form"] );
         $gvg_products_page->maybe_update();
         $gvg_products_page->maybe_autosplit();
+        $gvg_products_page->get_products_results();
+        $gvg_products_page->maybe_search_and_replace_description();
+        BW_::oik_box( null, null, __( "Search and replace", 'gvg_bulk_update') , [$gvg_products_page, 'display_search_and_replace_description'] );
         BW_::oik_box( null, null, __( "Results", "gvg_bulk_update" ) , [$gvg_products_page, "products_results"] );
         BW_::oik_box( null, null, __( "Summary", 'gvg_bulk_update') , [$gvg_products_page, 'report_matches'] );
         oik_menu_footer();
